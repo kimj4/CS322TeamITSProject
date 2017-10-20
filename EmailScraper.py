@@ -25,3 +25,12 @@ with open("email.txt") as file:
 		else: #if no subject, to, or from,
 		contents = contents + line #append line to contents.
 
+
+	data = {
+	'From' : addresser
+	'to' : addressee
+	'subject' : subject
+	'body' : contents
+	}
+
+	with open ('emails.json')
