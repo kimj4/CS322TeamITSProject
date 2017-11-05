@@ -1,14 +1,20 @@
 import nltk.data
 from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters
-import pprint
+from pprint import pprint
 import random
 import copy
 from decimal import *
 import csv
 import operator
 import collections
+import json
+import talon
+from talon.signature.bruteforce import extract_signature
+from talon import quotations
+import math
 
 nltk.download('punkt')
+print('\n\n\n')
 
 def dataSplit(trainingRatio, sentences):
     ''' splits up the data into training and test sets where trainingRatio
@@ -176,52 +182,127 @@ def calculateSentencePerplexity(N, sentence, gramDict, total1Grams):
         sentencePerplexity = (1 / sentenceProbability) ** Decimal(1 / (len(sentence)))
     return sentencePerplexity
 
+def _processEmail(email):
+    '''
+    processes email before sentence-tokenization. Does body extraction
+    through talon (get rid of signature and email chain junk (theoretically))
+    '''
+    talon.init() # this throws a warning. This package may be depreciated
+    reply = quotations.extract_from(email, 'text/plain')
+    reply = quotations.extract_from_plain(email)
+    text, signature = extract_signature(email)
+
+    return text
+
+def _processEmails(emailsList):
+    ''' just does the email processing for a list of emailsList '''
+    processedEmails = []
+    for email in emailsList:
+        processedEmails.append(_processEmail(email))
+    return processedEmails
+
+def _processSentences(sentencesList):
+    ''' manipulates sentences to a format suitable for n-gram modeling
+        remove unnecessary whitespace
+        remove some punctuation
+
+        sentencesList = a list of strings
+    '''
+    newSentences = []
+    for s in sentencesList:
+        # when removing, replace with a whitespace, and check later for double
+            # white space
+
+        # remove unnecessary whitespace
+        newS = s.replace('\n', ' ')
+
+        # remove some Symbols
+        disallowedSymbols = '!@#$%^&*()_=+[]\{\}<>,/?\|`~:;'
+        for sym  in disallowedSymbols:
+            newS = newS.replace(sym, ' ')
+
+
+        # remove end-of-sentence punctuation
+        # TODO: consider cases like "what?!"
+        if len(newS) > 0:
+            if newS[-1] in '!?.':
+                newS = newS[:-1]
+
+        newS = newS.replace('  ', ' ')
+        # lowercase all words
+        newS = newS.lower()
+        newSentences.append(newS)
+    return newSentences
+
+def divideEmailsBySender(jsonObj):
+    ''' divide the json object into two, where one is for all emails sent by
+        Jeb Bush and the other is all received '''
+    fromJeb = []
+    toJeb = []
+    for e in jsonObj:
+        if 'jeb' in  e['from'].lower():
+            fromJeb.append(e)
+        else:
+            toJeb.append(e)
+    return (fromJeb, toJeb)
+
+def _mergeBodies(emails):
+    bodies = []
+    for e in emails:
+        bodies.append(e['body'])
+    return bodies
+
+def prepareEmailsForNGram(emails):
+    ''' takes in email json objects and outputs a list of processed sentences'''
+    punkt_param = PunktParameters()
+    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
+    sentence_splitter = PunktSentenceTokenizer(punkt_param)
+
+    # a list of bodies
+    bodies = _mergeBodies(emails)
+
+    bodies = _processEmails(bodies)
+
+    # a list of sentences contained in all bodies
+    rawSentences = []
+    for body in bodies:
+        rawSentences.extend(sentence_splitter.tokenize(body))
+
+    # a list of cleaned sentences contained in all BrowardTimes
+    cleanedSentences = _processSentences(rawSentences)
+
+    return cleanedSentences
+
+
 def main():
     punkt_param = PunktParameters()
     punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
     sentence_splitter = PunktSentenceTokenizer(punkt_param)
 
-    fp = open("exampleCorpus.txt", 'r', encoding='UTF-8', errors='ignore')
+    # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
 
-    data = fp.read()
-    print(data)
-    sentences = sentence_splitter.tokenize(data)
+    with open("emails.json", 'r') as f:
+        data = json.load(f)
 
+    fromJeb, toJeb = divideEmailsBySender(data)
 
-    numSentences = len(sentences)
-    numWords = 0
-    wordDict = {}
+    # these are all json objects, need to merge their bodies.
+    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
+    toJebTraining, toJebTest = dataSplit(.7, toJeb)
 
-    modifiedSentences = []
+    # list of sentences that's ready for n-gram model creation
+    fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
+    toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
 
-    for sentence in sentences:
-        # get rid of end-of-sentence punctuation so that they won't be
-        #  counted as words
-        sentence = sentence[:-1]
-        sentence = sentence.lower()
-        modifiedSentences.append(sentence)
-        tokenized_text = nltk.word_tokenize(sentence)
-        for word in tokenized_text:
-            numWords += 1
-            if word in wordDict:
-                wordDict[word] += 1
-            else:
-                wordDict[word] = 1
+    # ngram models are created! (for now these are unigram counts)
+    fromNGram =  createNgram(1, fromJebTrainingCorpus)
+    toNGram =  createNgram(1, toJebTrainingCorpus)
 
-    sentences = modifiedSentences
-
-    seventyThirty = dataSplit(.7, sentences)
-
-    gramDict = {}
-    total1Grams = 0
-
-    # first create the ngram models
-    for i in range(1, 2):
-        trainingGrams = createNgram(i, seventyThirty[0])
-        gramDict[str(i) + "gram"] = trainingGrams
-
-    pprint.pprint(gramDict)
+    # should be able to calculate MLE or something here, but fromJebTest and
+    #  toJebTest bodies need to be extracted
 
 
 if __name__ == '__main__':
     main()
+
+print('\n\n\n')

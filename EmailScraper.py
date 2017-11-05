@@ -33,6 +33,7 @@ def jsonify_file(input_file_name, output_file_name):
 		cur_email_idx = -1
 		cur_email = {}
 		contents = ''
+		isDisclaimer = False # in an effort to get rid of the FL information law disclaimer
 		for line in data:
 			tempLine = line
 			tempLine = tempLine.strip()
@@ -41,6 +42,7 @@ def jsonify_file(input_file_name, output_file_name):
 			fromRegex = re.compile('From\:')
 			subRegex = re.compile('Subject\:')
 			sentRegex = re.compile('Sent\:')
+			starsRegex = re.compile('[*]+')
 
 
 			if toRegex.match(tempLine): #if there's a "to:" in there
@@ -56,10 +58,13 @@ def jsonify_file(input_file_name, output_file_name):
 
 					#  We may need to split sentences by newline characters since
 					#   sometimes people use it instead of closing it with a period.
-					# contents = contents.replace('\n', ' ')
-					# contents = contents.replace('\t', ' ')
+					contents = contents.replace('\n', ' ')
+					contents = contents.replace('\t', ' ')
 					# contents = contents.replace('-----Original Message-----', '')
-					# contents = contents.replace('***********************************************************Please note: Florida has a very broad public records law.Most written communications to or from state officialsregarding state business are public records available to thepublic and media upon request. Your e-mail communicationsmay therefore be subject to public disclosure.', '')
+
+					contents = contents.replace('  ', ' ')
+
+					# contents = contents.replace('*********************************************************** Please note: Florida has a very broad public records law. Most written communications to or from state officials regarding state business are public records available to the public and media upon request. Your e-mail communications may therefore be subject to public disclosure.', '')
 
 					# TODO: look into replacing the unicode apostrophe into a single quote or something
 					cur_email['body'] = contents
@@ -69,14 +74,22 @@ def jsonify_file(input_file_name, output_file_name):
 
 				addresser = tempLine[(fromRegex.match(tempLine).end() +1):]
 				cur_email['from'] = addresser
+				# if you've found another 'from' then, the disclaimer is probably over
+				isDisclaimer = False
 			elif subRegex.match(line):
 				subject = tempLine[(subRegex.match(tempLine).end() +1):]
 				cur_email['subject'] = subject
 			elif sentRegex.match(line):
 				sent =tempLine[(sentRegex.match(tempLine).end() +1):]
 				cur_email['sent'] = sent
+			elif starsRegex.match(line):
+				# the line of stars marks the beginning of the disclaimer
+				isDisclaimer = True
+				contents = contents + ''
 			else: #if no subject, to, or from,
-				contents = contents + line #append line to contents.
+				if not isDisclaimer:
+					# only add the line if it is not a part of the disclaimer
+					contents = contents + line #append line to contents.
 
 		with open(output_file_name, 'w+') as f:
 			json.dump(emails_list, f, indent=4)
@@ -87,22 +100,22 @@ def main():
 	directory = os.fsencode(directory_name)
 	count = 0
 	count_limit = 9999999999
-	for file in os.listdir(directory):
-		filename = os.fsdecode(file)
-		if filename.endswith(".txt"):
-			input_file_name = directory_name + '/' + filename
-			output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
-			jsonify_file(input_file_name, output_file_name)
-			if count == count_limit:
-				break;
-			count += 1
-			# continue
-		else:
-			continue
-	#
-	# input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
-	# output_file_name = 'emails.json'
-	# jsonify_file(input_file_name, output_file_name)
+	# for file in os.listdir(directory):
+	# 	filename = os.fsdecode(file)
+	# 	if filename.endswith(".txt"):
+	# 		input_file_name = directory_name + '/' + filename
+	# 		output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
+	# 		jsonify_file(input_file_name, output_file_name)
+	# 		if count == count_limit:
+	# 			break;
+	# 		count += 1
+	# 		# continue
+	# 	else:
+	# 		continue
+
+	input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
+	output_file_name = 'emails.json'
+	jsonify_file(input_file_name, output_file_name)
 
 if __name__ == '__main__':
 	main()
