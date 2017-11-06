@@ -115,23 +115,23 @@ def main():
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
 	count = 0
-	count_limit = 9999999999
-	# for file in os.listdir(directory):
-	# 	filename = os.fsdecode(file)
-	# 	if filename.endswith(".txt"):
-	# 		input_file_name = directory_name + '/' + filename
-	# 		output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
-	# 		jsonify_file(input_file_name, output_file_name)
-	# 		if count == count_limit:
-	# 			break;
-	# 		count += 1
-	# 		# continue
-	# 	else:
-	# 		continue
+	count_limit = 10
+	for file in os.listdir(directory):
+		filename = os.fsdecode(file)
+		if filename.endswith(".txt"):
+			input_file_name = directory_name + '/' + filename
+			output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
+			jsonify_file(input_file_name, output_file_name)
+			if count == count_limit:
+				break;
+			count += 1
+			# continue
+		else:
+			continue
 
-	input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
-	output_file_name = 'emails.json'
-	jsonify_file(input_file_name, output_file_name)
+	# input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
+	# output_file_name = 'emails.json'
+	# jsonify_file(input_file_name, output_file_name)
 
 if __name__ == '__main__':
 	main()

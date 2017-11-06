@@ -53,9 +53,7 @@ def main():
     fromFreq = getNGramFrequency(fromUnigram)
     toFreq = getNGramFrequency(toUnigram)
 
-
-
-    a = find_particular_words(fromFreq, toFreq, 20)
+    a = find_particular_words(fromFreq, toFreq, 500)
     pprint(a)
     # print(b)
 

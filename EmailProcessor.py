@@ -12,6 +12,7 @@ import talon
 from talon.signature.bruteforce import extract_signature
 from talon import quotations
 import math
+import os
 
 nltk.download('punkt')
 print('\n\n\n')
@@ -279,9 +280,19 @@ def runAndGet():
     sentence_splitter = PunktSentenceTokenizer(punkt_param)
 
     # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
+    data = []
 
-    with open("emails.json", 'r') as f:
-        data = json.load(f)
+
+    directory_name = 'output'
+    directory = os.fsencode(directory_name)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".json"):
+            input_file_name = directory_name + '/' +filename
+            with open(input_file_name, 'r') as f:
+                tempdata = json.load(f)
+                data.extend(tempdata)
+                # print(len(data))
 
     fromJeb, toJeb = divideEmailsBySender(data)
 
