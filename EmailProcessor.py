@@ -273,6 +273,35 @@ def prepareEmailsForNGram(emails):
 
     return cleanedSentences
 
+def runAndGet():
+    punkt_param = PunktParameters()
+    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
+    sentence_splitter = PunktSentenceTokenizer(punkt_param)
+
+    # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
+
+    with open("emails.json", 'r') as f:
+        data = json.load(f)
+
+    fromJeb, toJeb = divideEmailsBySender(data)
+
+    # these are all json objects, need to merge their bodies.
+    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
+    toJebTraining, toJebTest = dataSplit(.7, toJeb)
+
+    # list of sentences that's ready for n-gram model creation
+    fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
+    toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
+
+    # ngram models are created! (for now these are unigram counts)
+    fromNGram =  createNgram(2, fromJebTrainingCorpus)
+    toNGram =  createNgram(2, toJebTrainingCorpus)
+
+    # should be able to calculate MLE or something here, but fromJebTest and
+    #  toJebTest bodies need to be extracted
+
+    return (fromNGram, toNGram)
+
 
 def main():
     punkt_param = PunktParameters()
@@ -300,6 +329,8 @@ def main():
 
     # should be able to calculate MLE or something here, but fromJebTest and
     #  toJebTest bodies need to be extracted
+
+
 
 
 if __name__ == '__main__':

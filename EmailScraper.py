@@ -35,14 +35,27 @@ def jsonify_file(input_file_name, output_file_name):
 		contents = ''
 		isDisclaimer = False # in an effort to get rid of the FL information law disclaimer
 		for line in data:
+
+			# if '’' in line:
+			# 	print(line)
+			line = line.replace('’', '\'')
+
+			line = line.replace('> ', '')
+			line = line.replace('>', '')
+			# if 'Original Message' in line:
+			# 	print(line)
+
 			tempLine = line
 			tempLine = tempLine.strip()
 
 			toRegex = re.compile('To\:' )
 			fromRegex = re.compile('From\:')
 			subRegex = re.compile('Subject\:')
-			sentRegex = re.compile('Sent\:')
+			sentRegex = re.compile('[ \t]*Sent\:')
 			starsRegex = re.compile('[*]+')
+			ccRegex = re.compile('[cC][cC] *:')
+			rangleRegex = re.compile('>')
+			omRegex = re.compile('.*[- ]*Original Message[ -]*')
 
 
 			if toRegex.match(tempLine): #if there's a "to:" in there
@@ -60,11 +73,8 @@ def jsonify_file(input_file_name, output_file_name):
 					#   sometimes people use it instead of closing it with a period.
 					contents = contents.replace('\n', ' ')
 					contents = contents.replace('\t', ' ')
-					# contents = contents.replace('-----Original Message-----', '')
 
 					contents = contents.replace('  ', ' ')
-
-					# contents = contents.replace('*********************************************************** Please note: Florida has a very broad public records law. Most written communications to or from state officials regarding state business are public records available to the public and media upon request. Your e-mail communications may therefore be subject to public disclosure.', '')
 
 					# TODO: look into replacing the unicode apostrophe into a single quote or something
 					cur_email['body'] = contents
@@ -86,6 +96,12 @@ def jsonify_file(input_file_name, output_file_name):
 				# the line of stars marks the beginning of the disclaimer
 				isDisclaimer = True
 				contents = contents + ''
+			elif ccRegex.match(line):
+				# probably won't need carbon copy information
+				continue
+			elif omRegex.match(line):
+				continue
+
 			else: #if no subject, to, or from,
 				if not isDisclaimer:
 					# only add the line if it is not a part of the disclaimer
