@@ -8,9 +8,9 @@ import csv
 import operator
 import collections
 import json
-import talon
-from talon.signature.bruteforce import extract_signature
-from talon import quotations
+# import talon
+# from talon.signature.bruteforce import extract_signature
+# from talon import quotations
 import math
 import os
 
@@ -188,10 +188,10 @@ def _processEmail(email):
     processes email before sentence-tokenization. Does body extraction
     through talon (get rid of signature and email chain junk (theoretically))
     '''
-    talon.init() # this throws a warning. This package may be depreciated
-    reply = quotations.extract_from(email, 'text/plain')
-    reply = quotations.extract_from_plain(email)
-    text, signature = extract_signature(email)
+    #talon.init() # this throws a warning. This package may be depreciated
+    # reply = quotations.extract_from(email, 'text/plain')
+    # reply = quotations.extract_from_plain(email)
+    # text, signature = extract_signature(email)
 
     return text
 
@@ -262,7 +262,7 @@ def prepareEmailsForNGram(emails):
     # a list of bodies
     bodies = _mergeBodies(emails)
 
-    bodies = _processEmails(bodies)
+    #bodies = _processEmails(bodies)
 
     # a list of sentences contained in all bodies
     rawSentences = []
@@ -313,6 +313,46 @@ def runAndGet():
 
     return (fromNGram, toNGram)
 
+def getAllModels():
+    punkt_param = PunktParameters()
+    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
+    sentence_splitter = PunktSentenceTokenizer(punkt_param)
+
+    # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
+
+    with open("emails.json", 'r') as f:
+        data = json.load(f)
+
+    fromJeb, toJeb = divideEmailsBySender(data)
+
+    # these are all json objects, need to merge their bodies.
+    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
+    toJebTraining, toJebTest = dataSplit(.7, toJeb)
+
+    # list of sentences that's ready for n-gram model creation
+    fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
+    toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
+    bigramModels = getNgramModels(2, fromJebTrainingCorpus, toJebTrainingCorpus)
+    unigramModels = getNgramModels(1, fromJebTrainingCorpus, toJebTrainingCorpus)
+    with open('models/downspeakBigramModel.json', 'w') as fp:
+        json.dump(bigramModels[0], fp)
+    with open('models/downspeakUnigramModel.json', 'w') as fp:
+        json.dump(unigramModels[0], fp)
+    with open('models/upspeakBigramModel.json', 'w') as fp:
+        json.dump(bigramModels[1], fp)
+    with open('models/upspeakUnigramModel.json', 'w') as fp:
+        json.dump(unigramModels[1], fp)
+
+def getNgramModels(N, fromJebTrainingCorpus, toJebTrainingCorpus):
+
+
+    # ngram models are created! (for now these are unigram counts)
+    fromNGram =  createNgram(N, fromJebTrainingCorpus)
+    toNGram =  createNgram(N, toJebTrainingCorpus)
+
+    # should be able to calculate MLE or something here, but fromJebTest and
+    #  toJebTest bodies need to be extracted
+    return (fromNGram, toNGram)
 
 def main():
     punkt_param = PunktParameters()
@@ -340,7 +380,8 @@ def main():
 
     # should be able to calculate MLE or something here, but fromJebTest and
     #  toJebTest bodies need to be extracted
-
+    print("It worked")
+    return (fromNGram, toNGram)
 
 
 
