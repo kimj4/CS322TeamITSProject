@@ -40,7 +40,32 @@ def calculateMLE(N, sentence):
             else:
                 sentenceMLE = sentenceMLE * 0.000001
 
+    upspeakSentenceMLE = sentenceMLE
 
+    sentenceMLE = 1
+    totalDownspeakUnigrams = sum(downspeakUnigramModel.values())
+    # right now, only calculates downspeak MLE, specific to bigrams/unigrams
+    for key, value in sentenceNGrams.items():
+        if N > 1:
+            if key.split(' ')[-2] == '<s>':
+                sentenceMLE = sentenceMLE * (downspeakUnigramModel['<s>'] / totalDownspeakUnigrams) * sentenceNGrams[key]
+            elif key in downspeakBigramModel.keys():
+                # print('n-gram found')
+                # calculating P(w1 w2 | w1)
+                prevGram = " ".join(key.split(" ")[:-1])
+                sentenceMLE = sentenceMLE * (downspeakBigramModel[key] / downspeakUnigramModel[prevGram]) * sentenceNGrams[key]
+            else:
+                sentenceMLE = sentenceMLE * 0.000001
+        else:
+            if key in downspeakBigramModel.keys():
+                # print('n-gram found')
+                # print(str(probabilityDict[key]))
+                sentenceMLE = sentenceMLE * (downspeakUnigramModel[key] / totalDownspeakUnigrams) * sentenceNGrams[key]
+            else:
+                sentenceMLE = sentenceMLE * 0.000001
+
+    print('upspeak MLE is ', upspeakSentenceMLE)
+    print('downspeak MLE is ', sentenceMLE)
     return sentenceMLE
 
 def main():
@@ -49,7 +74,7 @@ def main():
         upspeakUnigramModel = json.load(fp)
     print(upspeakUnigramModel)
     print(type(upspeakUnigramModel))
-    calculateMLE(2, 'Please get in touch soon')
+    print(calculateMLE(2, 'Please clap'))
 
 if __name__ == '__main__':
     main()
