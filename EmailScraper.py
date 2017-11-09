@@ -115,12 +115,13 @@ def main():
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
 	count = 0
-	count_limit = 100
+	count_limit = 500
 	for file in os.listdir(directory):
 		filename = os.fsdecode(file)
 		if filename.endswith(".txt"):
 			input_file_name = directory_name + '/' + filename
-			output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
+			# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
+			output_file_name = out_directory_name + '/' + str(count) + '.json'
 			jsonify_file(input_file_name, output_file_name)
 			if count == count_limit:
 				break;

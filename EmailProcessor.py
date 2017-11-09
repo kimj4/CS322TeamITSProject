@@ -14,6 +14,7 @@ import json
 import math
 import os
 
+
 nltk.download('punkt')
 print('\n\n\n')
 
@@ -274,7 +275,7 @@ def prepareEmailsForNGram(emails):
 
     return cleanedSentences
 
-def runAndGet():
+def runAndGet(thread_name):
     punkt_param = PunktParameters()
     punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
     sentence_splitter = PunktSentenceTokenizer(punkt_param)
@@ -282,16 +283,55 @@ def runAndGet():
     # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
     data = []
 
+    num_files_to_include = 200
+    start = 0
+    num_threads = 4 # this is hardcoded
+    if thread_name == '1':
+        start = num_files_to_include * 0 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '2':
+        start = num_files_to_include * 1 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '3':
+        start = num_files_to_include * 2 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '4':
+        start = num_files_to_include * 3 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '5':
+        start = num_files_to_include * 4 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '6':
+        start = num_files_to_include * 5 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '7':
+        start = num_files_to_include * 6 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    elif thread_name == '8':
+        start = num_files_to_include * 7 // num_threads
+        num_files_to_include = num_files_to_include // num_threads
+    else:
+        print("ERROR: invalid thread name!")
 
+
+
+
+    cur_count = 0;
     directory_name = 'output'
     directory = os.fsencode(directory_name)
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".json"):
-            input_file_name = directory_name + '/' +filename
-            with open(input_file_name, 'r') as f:
-                tempdata = json.load(f)
-                data.extend(tempdata)
+            if int(filename.split('.')[0]) >= start:
+
+                print(str(thread_name))
+                input_file_name = directory_name + '/' +filename
+                with open(input_file_name, 'r') as f:
+                    tempdata = json.load(f)
+                    data.extend(tempdata)
+                cur_count += 1
+        if cur_count == num_files_to_include:
+            break
                 # print(len(data))
 
     fromJeb, toJeb = divideEmailsBySender(data)
@@ -311,18 +351,20 @@ def runAndGet():
     fromBigram = createNgram(2, fromJebTrainingCorpus)
     toBigram = createNgram(2, toJebTrainingCorpus)
 
-    with open('models/downspeakBigramModel.json', 'w') as fp:
-        json.dump(fromBigram, fp)
-    with open('models/downspeakUnigramModel.json', 'w') as fp:
-        json.dump(fromUnigram, fp)
-    with open('models/upspeakBigramModel.json', 'w') as fp:
-        json.dump(toBigram, fp)
-    with open('models/upspeakUnigramModel.json', 'w') as fp:
-        json.dump(toUnigram, fp)
+    # with open('models/downspeakBigramModel.json', 'w') as fp:
+    #     json.dump(fromBigram, fp)
+    # with open('models/downspeakUnigramModel.json', 'w') as fp:
+    #     json.dump(fromUnigram, fp)
+    # with open('models/upspeakBigramModel.json', 'w') as fp:
+    #     json.dump(toBigram, fp)
+    # with open('models/upspeakUnigramModel.json', 'w') as fp:
+    #     json.dump(toUnigram, fp)
     # should be able to calculate MLE or something here, but fromJebTest and
     #  toJebTest bodies need to be extracted
 
     #return (fromUnigram, toUnigram, from)
+    print(str(thread_name) + ' is done!')
+    return (fromUnigram, fromBigram, toUnigram, toBigram)
 
 def getAllModels():
     punkt_param = PunktParameters()
