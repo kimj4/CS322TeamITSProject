@@ -115,7 +115,7 @@ def main():
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
 	count = 0
-	count_limit = 10
+	count_limit = 100
 	for file in os.listdir(directory):
 		filename = os.fsdecode(file)
 		if filename.endswith(".txt"):

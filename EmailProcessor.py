@@ -35,7 +35,7 @@ def createNgram(N, sentences):
     '''
     N -- 1 for unigram, 2 for bigram, ...
     sentences -- a list of sentences to create ngrams on ([sentence] for a single
-               sentnece)
+               sentence)
     Returns a dictionary of ngrams and their counts of the form
         {'first ngram': 2, 'second ngram': 29, ...}
     '''
@@ -305,13 +305,24 @@ def runAndGet():
     toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
 
     # ngram models are created! (for now these are unigram counts)
-    fromNGram =  createNgram(2, fromJebTrainingCorpus)
-    toNGram =  createNgram(2, toJebTrainingCorpus)
+    fromUnigram = createNgram(1, fromJebTrainingCorpus)
+    toUnigram = createNgram(1, toJebTrainingCorpus)
 
+    fromBigram = createNgram(2, fromJebTrainingCorpus)
+    toBigram = createNgram(2, toJebTrainingCorpus)
+
+    with open('models/downspeakBigramModel.json', 'w') as fp:
+        json.dump(fromBigram, fp)
+    with open('models/downspeakUnigramModel.json', 'w') as fp:
+        json.dump(fromUnigram, fp)
+    with open('models/upspeakBigramModel.json', 'w') as fp:
+        json.dump(toBigram, fp)
+    with open('models/upspeakUnigramModel.json', 'w') as fp:
+        json.dump(toUnigram, fp)
     # should be able to calculate MLE or something here, but fromJebTest and
     #  toJebTest bodies need to be extracted
 
-    return (fromNGram, toNGram)
+    #return (fromUnigram, toUnigram, from)
 
 def getAllModels():
     punkt_param = PunktParameters()
