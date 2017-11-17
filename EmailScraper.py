@@ -152,7 +152,7 @@ def main():
 	pool = multiprocessing.Pool( cpu_count )
 	tasks = []
 	tNum = 0
-	max_t = 4
+	max_t = cpu_count
 	print(str(cpu_count))
 	while tNum < max_t:
 		tNum += 1
