@@ -7,7 +7,7 @@ import _thread as thread
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 
-def calculateMLE(N, sentence):
+def calculateAllMLEs(N, sentence):
     '''
     calculates the minimum likelihood estimate on sample sentences for given model
     '''
@@ -133,7 +133,55 @@ def calculateMLE(N, sentence):
     print('downspeak MLE is ', downspeakSentenceMLE)
     print(topThreeDownspeakProbs)
 
+    calculateMLE(upspeakNgramModel, upspeakNMinusOneGramModel, sentenceNGrams)
+    calculateMLE(downspeakNgramModel, downspeakNMinusOneGramModel, sentenceNGrams)
+
+
     return downspeakSentenceMLE
+
+def calculateMLE(nGramModel, nMinusOneGramModel, sentenceNGrams):
+    sentenceMLE = 1;
+    totalNMinusOneGrams = sum(nMinusOneGramModel.values())
+    totalNGrams = sum(nGramModel.values())
+
+    topThreeProbs = {}
+    minTopThreeProb = 0
+    # right now, only calculates MLE, specific to bigrams/unigrams
+    for key, value in sentenceNGrams.items():
+        if N > 1:
+            # CHECK IF THIS STILL WORKS
+            if key.split(' ')[-2] == '<s>':
+                probability = NMinusOneGramModel['<s>'] / totalNMinusOneGrams
+            elif key in nGramModel.keys():
+                # print('n-gram found')
+                # calculating P(w1 w2 | w1)
+                prevGram = " ".join(key.split(" ")[:-1])
+                probability = nGramModel[key] / nMinusOneGramModel[prevGram]
+            else:
+                probability = 0.000001
+
+            sentenceMLE = sentenceMLE * probability * sentenceNGrams[key]
+            # check if probability is greater than the min of the threee greatest stored probabilities
+            if probability > minTopThreeProb:
+                maxEntryLessThanProbability = minTopThreeProb
+                for probKey, probValue in topThreeProbs.items():
+                    if probKey > maxEntryLessThanProbability and probKey < probability:
+                        maxEntryLessThanProbability = probKey
+
+                topThreeProbs[probability] = key
+
+                if len(topThreeProbs) > 3:
+                    topThreeProbs.pop(min(topThreeProbs, key=topThreeProbs.get), None)
+        else:
+            if key in nGramModel.keys():
+                # print('n-gram found')
+                # print(str(probabilityDict[key]))
+                sentenceMLE = sentenceMLE * (nGramModel[key] / totalNgrams) * sentenceNGrams[key]
+            else:
+                sentenceMLE = sentenceMLE * 0.000001 * sentenceNGrams[key]
+    print('MLE is ', sentenceMLE)
+    print(topThreeProbs)
+
 
 def mergeGrams(list_of_grams):
     merged = {}
@@ -210,9 +258,9 @@ def main():
         if len(param) > 0:
             if param[-1] in '!?.':
                 param = param[:-1]
-            print(calculateMLE(2, str(param)))
+            print(calculateAllMLEs(2, str(param)))
     else:
-        print(calculateMLE(2, 'I wanted to ask you to give your recommendation to my friend'))
+        print(calculateAllMLEs(2, 'I wanted to ask you to give your recommendation to my friend'))
 
 if __name__ == '__main__':
     main()
