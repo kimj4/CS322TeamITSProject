@@ -173,13 +173,15 @@ def main():
     #     r8 = future8.result()
     # print('here')
 
-    pool = multiprocessing.Pool( multiprocessing.cpu_count() )
+    # cpu_count =  multiprocessing.cpu_count()
+    cpu_count = 4
+    pool = multiprocessing.Pool( cpu_count )
     tasks = []
     tNum = 0
-    max_t = 4
+    max_t = cpu_count
     while tNum < max_t:
         tNum += 1
-        tasks.append( (str(tNum),) )
+        tasks.append( (str(tNum), tNum, cpu_count) )
     results = []
     for t in tasks:
         results.append( pool.apply_async( EmailProcessor.runAndGet, t ) )
@@ -238,5 +240,5 @@ def main():
         print(calculateMLE(2, 'I wanted to ask you to give your recommendation to my friend'))
 
 if __name__ == '__main__':
-    main()
-    # cProfile.run('main()')
+    # main()
+    cProfile.run('main()')

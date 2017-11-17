@@ -275,7 +275,7 @@ def prepareEmailsForNGram(emails):
 
     return cleanedSentences
 
-def runAndGet(thread_name):
+def runAndGet(thread_name, thread_number, total_thread_count):
     punkt_param = PunktParameters()
     punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
     sentence_splitter = PunktSentenceTokenizer(punkt_param)
@@ -283,36 +283,11 @@ def runAndGet(thread_name):
     # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
     data = []
 
-    num_files_to_include = 200
+    num_files_to_include = 360
     start = 0
-    num_threads = 4 # this is hardcoded
-    if thread_name == '1':
-        start = num_files_to_include * 0 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '2':
-        start = num_files_to_include * 1 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '3':
-        start = num_files_to_include * 2 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '4':
-        start = num_files_to_include * 3 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '5':
-        start = num_files_to_include * 4 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '6':
-        start = num_files_to_include * 5 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '7':
-        start = num_files_to_include * 6 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '8':
-        start = num_files_to_include * 7 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    else:
-        print("ERROR: invalid thread name!")
-
+    num_threads = total_thread_count
+    num_files_to_include = num_files_to_include // total_thread_count
+    start = num_files_to_include * (thread_number - 1)
 
 
 

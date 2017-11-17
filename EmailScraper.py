@@ -3,6 +3,8 @@ import os
 import re
 import json
 from pprint import pprint
+import multiprocessing
+
 #this is a placeholder for when we feed in the text#
 contents = ""
 addresser = ""
@@ -110,25 +112,51 @@ def jsonify_file(input_file_name, output_file_name):
 		with open(output_file_name, 'w+') as f:
 			json.dump(emails_list, f, indent=4)
 
-def main():
+def scrape(thread_name, thread_number, total_thread_count):
+	count_limit = 400
+	num_to_process = count_limit // total_thread_count
+
+	start = num_to_process * (thread_number - 1)
+
 	directory_name = 'JebBushEmails'
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
 	count = 0
-	count_limit = 500
+	count_to_start = 0;
 	for file in os.listdir(directory):
-		filename = os.fsdecode(file)
-		if filename.endswith(".txt"):
-			input_file_name = directory_name + '/' + filename
-			# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
-			output_file_name = out_directory_name + '/' + str(count) + '.json'
-			jsonify_file(input_file_name, output_file_name)
-			if count == count_limit:
-				break;
-			count += 1
-			# continue
+		if count_to_start < start:
+			count_to_start += 1
 		else:
-			continue
+			filename = os.fsdecode(file)
+			if filename.endswith(".txt"):
+				input_file_name = directory_name + '/' + filename
+				# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
+				output_file_name = out_directory_name + '/' + str(count_to_start) + '.json'
+				jsonify_file(input_file_name, output_file_name)
+				if count == num_to_process:
+					break;
+				else:
+					count += 1
+					count_to_start += 1
+					continue
+	return
+
+def main():
+	cpu_count = multiprocessing.cpu_count()
+	pool = multiprocessing.Pool( cpu_count )
+	tasks = []
+	tNum = 0
+	max_t = 4
+	while tNum < max_t:
+		tNum += 1
+		tasks.append( (str(tNum), tNum, cpu_count) )
+	results = []
+	for t in tasks:
+		results.append( pool.apply_async( scrape, t ) )
+
+	r = []
+	for result in results:
+		r.append(result.get())
 
 	# input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
 	# output_file_name = 'emails.json'
