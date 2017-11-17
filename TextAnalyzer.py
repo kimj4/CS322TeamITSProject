@@ -194,7 +194,9 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
-    makeFromScratch = False;
+    # makeFromScratch = False;
+    makeFromScratch = True;
+
     if makeFromScratch:
         # cpu_count =  multiprocessing.cpu_count()
         cpu_count = 4

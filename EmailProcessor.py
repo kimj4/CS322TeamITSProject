@@ -285,7 +285,7 @@ def getNgramsBalanced(thread_name, thread_number, total_thread_count):
 
     data = []
 
-    num_files_to_include = 360
+    num_files_to_include = 625
     start = 0
     num_threads = total_thread_count
     num_files_to_include = num_files_to_include // total_thread_count
