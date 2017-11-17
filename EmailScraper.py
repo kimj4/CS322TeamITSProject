@@ -25,7 +25,7 @@ def jsonify_file(input_file_name, output_file_name):
 	#   when you do, finalize the cur_email object and push it into the emails_list.
 	#  	Reinitialize cur_email and content for the next email.
 	#  Once you are done running through all lines, write the list out as a json
-	with open(input_file_name, 'r', encoding=None, errors='backslashreplace') as file:
+	with open(input_file_name, 'r', encoding=None, errors='replace') as file:
 		try:
 			data = file.readlines() #get data of email
 		except:
