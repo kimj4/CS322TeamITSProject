@@ -4,6 +4,8 @@ import re
 import json
 from pprint import pprint
 import multiprocessing
+from pathlib import Path
+
 
 #this is a placeholder for when we feed in the text#
 contents = ""
@@ -25,7 +27,6 @@ def jsonify_file(input_file_name, output_file_name):
 	#  Once you are done running through all lines, write the list out as a json
 	with open(input_file_name, 'r', encoding=None, errors='backslashreplace') as file:
 		data = file.readlines() #get data of email
-		print ('file successfully opened!')
 		#We're now going to parse the email. Our assumptions:
 		#1. There is only one "To" entity
 		#2. There is only one "From" entity
@@ -113,7 +114,7 @@ def jsonify_file(input_file_name, output_file_name):
 			json.dump(emails_list, f, indent=4)
 
 def scrape(thread_name, thread_number, total_thread_count):
-	count_limit = 400
+	count_limit = 626
 	num_to_process = count_limit // total_thread_count
 
 	start = num_to_process * (thread_number - 1)
@@ -121,6 +122,9 @@ def scrape(thread_name, thread_number, total_thread_count):
 	directory_name = 'JebBushEmails'
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
+
+	print
+
 	count = 0
 	count_to_start = 0;
 	for file in os.listdir(directory):
@@ -128,17 +132,19 @@ def scrape(thread_name, thread_number, total_thread_count):
 			count_to_start += 1
 		else:
 			filename = os.fsdecode(file)
-			if filename.endswith(".txt"):
+			if filename.endswith(".txt") and filename[0] != '.':
+				print('processing ' + filename)
 				input_file_name = directory_name + '/' + filename
 				# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
 				output_file_name = out_directory_name + '/' + str(count_to_start) + '.json'
-				jsonify_file(input_file_name, output_file_name)
-				if count == num_to_process:
-					break;
-				else:
-					count += 1
-					count_to_start += 1
-					continue
+				if not Path(output_file_name).is_file():
+					jsonify_file(input_file_name, output_file_name)
+					if count == num_to_process:
+						break;
+					else:
+						count += 1
+						count_to_start += 1
+						continue
 	return
 
 def main():
@@ -147,6 +153,7 @@ def main():
 	tasks = []
 	tNum = 0
 	max_t = 4
+	print(str(cpu_count))
 	while tNum < max_t:
 		tNum += 1
 		tasks.append( (str(tNum), tNum, cpu_count) )
