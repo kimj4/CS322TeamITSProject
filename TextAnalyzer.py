@@ -146,39 +146,13 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
-    #modelTuple = EmailProcessor.getAllModels()
-    # modelTuple = EmailProcessor.runAndGet()
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("1",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("2",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("3",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("4",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("6",) )
-    # EmailProcessor.runAndGet('6')
-    # with ThreadPoolExecutor(max_workers=4) as executor:
-    #     future1 = executor.submit(EmailProcessor.runAndGet, '1')
-    #     future2 = executor.submit(EmailProcessor.runAndGet, '2')
-    #     future3 = executor.submit(EmailProcessor.runAndGet, '3')
-    #     future4 = executor.submit(EmailProcessor.runAndGet, '4')
-    #     future5 = executor.submit(EmailProcessor.runAndGet, '5')
-    #     future6 = executor.submit(EmailProcessor.runAndGet, '6')
-    #     future7 = executor.submit(EmailProcessor.runAndGet, '7')
-    #     future8 = executor.submit(EmailProcessor.runAndGet, '8')
-    #     r1 = future1.result()
-    #     r2 = future2.result()
-    #     r3 = future3.result()
-    #     r4 = future4.result()
-    #     r5 = future5.result()
-    #     r6 = future6.result()
-    #     r7 = future7.result()
-    #     r8 = future8.result()
-    # print('here')
 
     # cpu_count =  multiprocessing.cpu_count()
     cpu_count = 4
     pool = multiprocessing.Pool( cpu_count )
     tasks = []
     tNum = 0
-    max_t = cpu_count
+    # max_t = cpu_count
     while tNum < max_t:
         tNum += 1
         tasks.append( (str(tNum), tNum, cpu_count) )
