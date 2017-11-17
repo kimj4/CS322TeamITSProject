@@ -146,57 +146,58 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
+    makeFromScratch = False;
+    if makeFromScratch:
+        # cpu_count =  multiprocessing.cpu_count()
+        cpu_count = 4
+        pool = multiprocessing.Pool( cpu_count )
+        tasks = []
+        tNum = 0
+        max_t = cpu_count
+        while tNum < max_t:
+            tNum += 1
+            tasks.append( (str(tNum), tNum, cpu_count) )
+        results = []
+        for t in tasks:
+            results.append( pool.apply_async( EmailProcessor.getNgramsBalanced, t ) )
 
-    # cpu_count =  multiprocessing.cpu_count()
-    cpu_count = 4
-    pool = multiprocessing.Pool( cpu_count )
-    tasks = []
-    tNum = 0
-    # max_t = cpu_count
-    while tNum < max_t:
-        tNum += 1
-        tasks.append( (str(tNum), tNum, cpu_count) )
-    results = []
-    for t in tasks:
-        results.append( pool.apply_async( EmailProcessor.runAndGet, t ) )
+        r = []
+        for result in results:
+            r.append(result.get())
 
-    r = []
-    for result in results:
-        r.append(result.get())
+        fromUnigrams = []
+        fromBigrams = []
+        toUnigrams = []
+        toBigrams = []
+        for result in r:
+            for i in range(4):
+                if i == 0:
+                    fromUnigrams.append(result[i])
+                elif i == 1:
+                    fromBigrams.append(result[i])
+                elif i == 2:
+                    toUnigrams.append(result[i])
+                elif i == 3:
+                    toBigrams.append(result[i])
 
-    fromUnigrams = []
-    fromBigrams = []
-    toUnigrams = []
-    toBigrams = []
-    for result in r:
-        for i in range(4):
-            if i == 0:
-                fromUnigrams.append(result[i])
-            elif i == 1:
-                fromBigrams.append(result[i])
-            elif i == 2:
-                toUnigrams.append(result[i])
-            elif i == 3:
-                toBigrams.append(result[i])
+        # fromUnigrams = [r1[0], r2[0], r3[0], r4[0], r5[0], r6[0], r7[0], r8[0]]
+        # fromBigrams = [r1[1], r2[1], r3[1], r4[1], r5[1], r6[1], r7[1], r8[1]]
+        # toUnigrams = [r1[2], r2[2], r3[2], r4[2], r5[2], r6[2], r7[2], r8[2]]
+        # toBigrams = [r1[3], r2[3], r3[3], r4[3], r5[3], r6[3], r7[3], r8[3]]
 
-    # fromUnigrams = [r1[0], r2[0], r3[0], r4[0], r5[0], r6[0], r7[0], r8[0]]
-    # fromBigrams = [r1[1], r2[1], r3[1], r4[1], r5[1], r6[1], r7[1], r8[1]]
-    # toUnigrams = [r1[2], r2[2], r3[2], r4[2], r5[2], r6[2], r7[2], r8[2]]
-    # toBigrams = [r1[3], r2[3], r3[3], r4[3], r5[3], r6[3], r7[3], r8[3]]
+        upspeakUnigramModel = mergeGrams(toUnigrams)
+        upspeakBigramModel = mergeGrams(toBigrams)
+        downspeakUnigramModel = mergeGrams(fromUnigrams)
+        downspeakBigramModel = mergeGrams(fromBigrams)
 
-    upspeakUnigramModel = mergeGrams(toUnigrams)
-    upspeakBigramModel = mergeGrams(toBigrams)
-    downspeakUnigramModel = mergeGrams(fromUnigrams)
-    downspeakBigramModel = mergeGrams(fromBigrams)
-
-    with open('models/upspeakUnigramModel.json', 'w') as f:
-        json.dump(upspeakUnigramModel, f)
-    with open('models/upspeakBigramModel.json', 'w') as f:
-        json.dump(upspeakBigramModel, f)
-    with open('models/downspeakUnigramModel.json', 'w') as f:
-        json.dump(downspeakUnigramModel, f)
-    with open('models/downspeakBigramModel.json', 'w') as f:
-        json.dump(downspeakUnigramModel, f)
+        with open('models/upspeakUnigramModel.json', 'w') as f:
+            json.dump(upspeakUnigramModel, f)
+        with open('models/upspeakBigramModel.json', 'w') as f:
+            json.dump(upspeakBigramModel, f)
+        with open('models/downspeakUnigramModel.json', 'w') as f:
+            json.dump(downspeakUnigramModel, f)
+        with open('models/downspeakBigramModel.json', 'w') as f:
+            json.dump(downspeakUnigramModel, f)
 
 
 
@@ -214,5 +215,5 @@ def main():
         print(calculateMLE(2, 'I wanted to ask you to give your recommendation to my friend'))
 
 if __name__ == '__main__':
-    # main()
-    cProfile.run('main()')
+    main()
+    # cProfile.run('main()')

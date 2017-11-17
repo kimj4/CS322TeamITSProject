@@ -113,7 +113,6 @@ def calculateMLE(sentence, N, trainingAndTestSets):
 
     return sentenceMLE
 
-
 def calculatePerplexity(N, trainingAndTestSets):
     ''' trainingAndTestSets: (list of training sentences, list of test setences)
         Calculates the average perplexity of sentences in the test set'''
@@ -275,25 +274,18 @@ def prepareEmailsForNGram(emails):
 
     return cleanedSentences
 
-def proccessAndStoreNgrams(thread_name, thread_number, total_thread_count):
+def getNgramsBalanced(thread_name, thread_number, total_thread_count):
     '''
-    Processes some number of scraped email json files, and outputs them as
-    a json in the ngramOutput folder
-
-    output format: {"train": {"upspeakUni" : {...},
-                              "upspeakBi" : {...},
-                              "downspeakUni" : {...},
-                              "downspeakBi" : {...}},
-                    "test":
-    Should help in minimizing repeated computations on the same data.
-
+    Build sets of ngrams but use only as many nonjeb emails as there are jeb
+    emails.
     '''
     punkt_param = PunktParameters()
     punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
     sentence_splitter = PunktSentenceTokenizer(punkt_param)
 
+    data = []
 
-    num_files_to_include = 625
+    num_files_to_include = 360
     start = 0
     num_threads = total_thread_count
     num_files_to_include = num_files_to_include // total_thread_count
@@ -302,22 +294,25 @@ def proccessAndStoreNgrams(thread_name, thread_number, total_thread_count):
     cur_count = 0;
     directory_name = 'output'
     directory = os.fsencode(directory_name)
-    output_directory = os.fsencode('ngramOutput')
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".json"):
             if int(filename.split('.')[0]) >= start:
-
                 input_file_name = directory_name + '/' +filename
                 with open(input_file_name, 'r') as f:
                     tempdata = json.load(f)
-
+                    data.extend(tempdata)
                 cur_count += 1
         if cur_count == num_files_to_include:
             break
                 # print(len(data))
 
     fromJeb, toJeb = divideEmailsBySender(data)
+    toJeb = toJeb[:len(fromJeb)]
+
+    print(len(fromJeb))
+    print(len(toJeb))
+
 
     # these are all json objects, need to merge their bodies.
     fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
@@ -337,7 +332,6 @@ def proccessAndStoreNgrams(thread_name, thread_number, total_thread_count):
     #return (fromUnigram, toUnigram, from)
     print(str(thread_name) + ' is done!')
     return (fromUnigram, fromBigram, toUnigram, toBigram)
-
 
 def runAndGet(thread_name, thread_number, total_thread_count):
     punkt_param = PunktParameters()
@@ -433,35 +427,7 @@ def getNgramModels(N, fromJebTrainingCorpus, toJebTrainingCorpus):
     return (fromNGram, toNGram)
 
 def main():
-    punkt_param = PunktParameters()
-    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
-    sentence_splitter = PunktSentenceTokenizer(punkt_param)
-
-    # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
-
-    with open("emails.json", 'r') as f:
-        data = json.load(f)
-
-    fromJeb, toJeb = divideEmailsBySender(data)
-
-    # these are all json objects, need to merge their bodies.
-    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
-    toJebTraining, toJebTest = dataSplit(.7, toJeb)
-
-    # list of sentences that's ready for n-gram model creation
-    fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
-    toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
-
-    # ngram models are created! (for now these are unigram counts)
-    fromNGram =  createNgram(1, fromJebTrainingCorpus)
-    toNGram =  createNgram(1, toJebTrainingCorpus)
-
-    # should be able to calculate MLE or something here, but fromJebTest and
-    #  toJebTest bodies need to be extracted
-    print("It worked")
-    return (fromNGram, toNGram)
-
-
+    print('Hey, do something else')
 
 if __name__ == '__main__':
     main()
