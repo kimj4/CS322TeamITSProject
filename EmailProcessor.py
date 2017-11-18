@@ -113,7 +113,6 @@ def calculateMLE(sentence, N, trainingAndTestSets):
 
     return sentenceMLE
 
-
 def calculatePerplexity(N, trainingAndTestSets):
     ''' trainingAndTestSets: (list of training sentences, list of test setences)
         Calculates the average perplexity of sentences in the test set'''
@@ -275,46 +274,77 @@ def prepareEmailsForNGram(emails):
 
     return cleanedSentences
 
-def runAndGet(thread_name):
+def getNgramsBalanced(thread_name, thread_number, total_thread_count):
+    '''
+    Build sets of ngrams but use only as many nonjeb emails as there are jeb
+    emails.
+    '''
     punkt_param = PunktParameters()
     punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
     sentence_splitter = PunktSentenceTokenizer(punkt_param)
 
-    # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
     data = []
 
-    num_files_to_include = 200
+    num_files_to_include = 625
     start = 0
-    num_threads = 4 # this is hardcoded
-    if thread_name == '1':
-        start = num_files_to_include * 0 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '2':
-        start = num_files_to_include * 1 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '3':
-        start = num_files_to_include * 2 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '4':
-        start = num_files_to_include * 3 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '5':
-        start = num_files_to_include * 4 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '6':
-        start = num_files_to_include * 5 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '7':
-        start = num_files_to_include * 6 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    elif thread_name == '8':
-        start = num_files_to_include * 7 // num_threads
-        num_files_to_include = num_files_to_include // num_threads
-    else:
-        print("ERROR: invalid thread name!")
+    num_threads = total_thread_count
+    num_files_to_include = num_files_to_include // total_thread_count
+    start = num_files_to_include * (thread_number - 1)
+
+    cur_count = 0;
+    directory_name = 'output'
+    directory = os.fsencode(directory_name)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".json"):
+            if int(filename.split('.')[0]) >= start:
+                input_file_name = directory_name + '/' +filename
+                with open(input_file_name, 'r') as f:
+                    tempdata = json.load(f)
+                    data.extend(tempdata)
+                cur_count += 1
+        if cur_count == num_files_to_include:
+            break
+                # print(len(data))
+
+    fromJeb, toJeb = divideEmailsBySender(data)
+    toJeb = toJeb[:len(fromJeb)]
+
+    print(len(fromJeb))
+    print(len(toJeb))
 
 
+    # these are all json objects, need to merge their bodies.
+    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
+    toJebTraining, toJebTest = dataSplit(.7, toJeb)
 
+    # list of sentences that's ready for n-gram model creation
+    fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
+    toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
+
+    # ngram models are created! (for now these are unigram counts)
+    fromUnigram = createNgram(1, fromJebTrainingCorpus)
+    toUnigram = createNgram(1, toJebTrainingCorpus)
+
+    fromBigram = createNgram(2, fromJebTrainingCorpus)
+    toBigram = createNgram(2, toJebTrainingCorpus)
+
+    #return (fromUnigram, toUnigram, from)
+    print(str(thread_name) + ' is done!')
+    return (fromUnigram, fromBigram, toUnigram, toBigram)
+
+def runAndGet(thread_name, thread_number, total_thread_count):
+    punkt_param = PunktParameters()
+    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
+    sentence_splitter = PunktSentenceTokenizer(punkt_param)
+
+    data = []
+
+    num_files_to_include = 360
+    start = 0
+    num_threads = total_thread_count
+    num_files_to_include = num_files_to_include // total_thread_count
+    start = num_files_to_include * (thread_number - 1)
 
     cur_count = 0;
     directory_name = 'output'
@@ -350,17 +380,6 @@ def runAndGet(thread_name):
 
     fromBigram = createNgram(2, fromJebTrainingCorpus)
     toBigram = createNgram(2, toJebTrainingCorpus)
-
-    # with open('models/downspeakBigramModel.json', 'w') as fp:
-    #     json.dump(fromBigram, fp)
-    # with open('models/downspeakUnigramModel.json', 'w') as fp:
-    #     json.dump(fromUnigram, fp)
-    # with open('models/upspeakBigramModel.json', 'w') as fp:
-    #     json.dump(toBigram, fp)
-    # with open('models/upspeakUnigramModel.json', 'w') as fp:
-    #     json.dump(toUnigram, fp)
-    # should be able to calculate MLE or something here, but fromJebTest and
-    #  toJebTest bodies need to be extracted
 
     #return (fromUnigram, toUnigram, from)
     print(str(thread_name) + ' is done!')
@@ -408,35 +427,7 @@ def getNgramModels(N, fromJebTrainingCorpus, toJebTrainingCorpus):
     return (fromNGram, toNGram)
 
 def main():
-    punkt_param = PunktParameters()
-    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
-    sentence_splitter = PunktSentenceTokenizer(punkt_param)
-
-    # fp = open("exampleCorpus.json", 'r', encoding='UTF-8', errors='ignore')
-
-    with open("emails.json", 'r') as f:
-        data = json.load(f)
-
-    fromJeb, toJeb = divideEmailsBySender(data)
-
-    # these are all json objects, need to merge their bodies.
-    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
-    toJebTraining, toJebTest = dataSplit(.7, toJeb)
-
-    # list of sentences that's ready for n-gram model creation
-    fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
-    toJebTrainingCorpus = prepareEmailsForNGram(toJebTraining)
-
-    # ngram models are created! (for now these are unigram counts)
-    fromNGram =  createNgram(1, fromJebTrainingCorpus)
-    toNGram =  createNgram(1, toJebTrainingCorpus)
-
-    # should be able to calculate MLE or something here, but fromJebTest and
-    #  toJebTest bodies need to be extracted
-    print("It worked")
-    return (fromNGram, toNGram)
-
-
+    print('Hey, do something else')
 
 if __name__ == '__main__':
     main()

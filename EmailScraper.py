@@ -3,6 +3,10 @@ import os
 import re
 import json
 from pprint import pprint
+import multiprocessing
+from pathlib import Path
+
+
 #this is a placeholder for when we feed in the text#
 contents = ""
 addresser = ""
@@ -21,9 +25,11 @@ def jsonify_file(input_file_name, output_file_name):
 	#   when you do, finalize the cur_email object and push it into the emails_list.
 	#  	Reinitialize cur_email and content for the next email.
 	#  Once you are done running through all lines, write the list out as a json
-	with open(input_file_name, 'r', encoding=None, errors='backslashreplace') as file:
-		data = file.readlines() #get data of email
-		print ('file successfully opened!')
+	with open(input_file_name, 'r', encoding=None, errors='replace') as file:
+		try:
+			data = file.readlines() #get data of email
+		except:
+			return
 		#We're now going to parse the email. Our assumptions:
 		#1. There is only one "To" entity
 		#2. There is only one "From" entity
@@ -110,25 +116,57 @@ def jsonify_file(input_file_name, output_file_name):
 		with open(output_file_name, 'w+') as f:
 			json.dump(emails_list, f, indent=4)
 
-def main():
+def scrape(thread_name, thread_number, total_thread_count):
+	count_limit = 626
+	num_to_process = count_limit // total_thread_count
+
+	start = num_to_process * (thread_number - 1)
+
 	directory_name = 'JebBushEmails'
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
+
+	print
+
 	count = 0
-	count_limit = 500
+	count_to_start = 0;
 	for file in os.listdir(directory):
-		filename = os.fsdecode(file)
-		if filename.endswith(".txt"):
-			input_file_name = directory_name + '/' + filename
-			# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
-			output_file_name = out_directory_name + '/' + str(count) + '.json'
-			jsonify_file(input_file_name, output_file_name)
-			if count == count_limit:
-				break;
-			count += 1
-			# continue
+		if count_to_start < start:
+			count_to_start += 1
 		else:
-			continue
+			filename = os.fsdecode(file)
+			if filename.endswith(".txt") and filename[0] != '.':
+				print('processing ' + filename)
+				input_file_name = directory_name + '/' + filename
+				# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
+				output_file_name = out_directory_name + '/' + str(count_to_start) + '.json'
+				if not Path(output_file_name).is_file():
+					jsonify_file(input_file_name, output_file_name)
+					if count == num_to_process:
+						break;
+					else:
+						count += 1
+						count_to_start += 1
+						continue
+	return
+
+def main():
+	cpu_count = multiprocessing.cpu_count()
+	pool = multiprocessing.Pool( cpu_count )
+	tasks = []
+	tNum = 0
+	max_t = cpu_count
+	print(str(cpu_count))
+	while tNum < max_t:
+		tNum += 1
+		tasks.append( (str(tNum), tNum, cpu_count) )
+	results = []
+	for t in tasks:
+		results.append( pool.apply_async( scrape, t ) )
+
+	r = []
+	for result in results:
+		r.append(result.get())
 
 	# input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
 	# output_file_name = 'emails.json'

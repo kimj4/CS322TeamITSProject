@@ -7,7 +7,7 @@ import _thread as thread
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 
-def calculateMLE(N, sentence):
+def calculateAllMLEs(N, sentence):
     '''
     calculates the minimum likelihood estimate on sample sentences for given model
     '''
@@ -133,7 +133,55 @@ def calculateMLE(N, sentence):
     print('downspeak MLE is ', downspeakSentenceMLE)
     print(topThreeDownspeakProbs)
 
+    calculateMLE(upspeakNgramModel, upspeakNMinusOneGramModel, sentenceNGrams)
+    calculateMLE(downspeakNgramModel, downspeakNMinusOneGramModel, sentenceNGrams)
+
+
     return downspeakSentenceMLE
+
+def calculateMLE(nGramModel, nMinusOneGramModel, sentenceNGrams):
+    sentenceMLE = 1;
+    totalNMinusOneGrams = sum(nMinusOneGramModel.values())
+    totalNGrams = sum(nGramModel.values())
+
+    topThreeProbs = {}
+    minTopThreeProb = 0
+    # right now, only calculates MLE, specific to bigrams/unigrams
+    for key, value in sentenceNGrams.items():
+        if N > 1:
+            # CHECK IF THIS STILL WORKS
+            if key.split(' ')[-2] == '<s>':
+                probability = NMinusOneGramModel['<s>'] / totalNMinusOneGrams
+            elif key in nGramModel.keys():
+                # print('n-gram found')
+                # calculating P(w1 w2 | w1)
+                prevGram = " ".join(key.split(" ")[:-1])
+                probability = nGramModel[key] / nMinusOneGramModel[prevGram]
+            else:
+                probability = 0.000001
+
+            sentenceMLE = sentenceMLE * probability * sentenceNGrams[key]
+            # check if probability is greater than the min of the threee greatest stored probabilities
+            if probability > minTopThreeProb:
+                maxEntryLessThanProbability = minTopThreeProb
+                for probKey, probValue in topThreeProbs.items():
+                    if probKey > maxEntryLessThanProbability and probKey < probability:
+                        maxEntryLessThanProbability = probKey
+
+                topThreeProbs[probability] = key
+
+                if len(topThreeProbs) > 3:
+                    topThreeProbs.pop(min(topThreeProbs, key=topThreeProbs.get), None)
+        else:
+            if key in nGramModel.keys():
+                # print('n-gram found')
+                # print(str(probabilityDict[key]))
+                sentenceMLE = sentenceMLE * (nGramModel[key] / totalNgrams) * sentenceNGrams[key]
+            else:
+                sentenceMLE = sentenceMLE * 0.000001 * sentenceNGrams[key]
+    print('MLE is ', sentenceMLE)
+    print(topThreeProbs)
+
 
 def mergeGrams(list_of_grams):
     merged = {}
@@ -146,81 +194,60 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
-    #modelTuple = EmailProcessor.getAllModels()
-    # modelTuple = EmailProcessor.runAndGet()
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("1",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("2",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("3",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("4",) )
-    # thread.start_new_thread( EmailProcessor.runAndGet, ("6",) )
-    # EmailProcessor.runAndGet('6')
-    # with ThreadPoolExecutor(max_workers=4) as executor:
-    #     future1 = executor.submit(EmailProcessor.runAndGet, '1')
-    #     future2 = executor.submit(EmailProcessor.runAndGet, '2')
-    #     future3 = executor.submit(EmailProcessor.runAndGet, '3')
-    #     future4 = executor.submit(EmailProcessor.runAndGet, '4')
-    #     future5 = executor.submit(EmailProcessor.runAndGet, '5')
-    #     future6 = executor.submit(EmailProcessor.runAndGet, '6')
-    #     future7 = executor.submit(EmailProcessor.runAndGet, '7')
-    #     future8 = executor.submit(EmailProcessor.runAndGet, '8')
-    #     r1 = future1.result()
-    #     r2 = future2.result()
-    #     r3 = future3.result()
-    #     r4 = future4.result()
-    #     r5 = future5.result()
-    #     r6 = future6.result()
-    #     r7 = future7.result()
-    #     r8 = future8.result()
-    # print('here')
+    # makeFromScratch = False;
+    makeFromScratch = True;
 
-    pool = multiprocessing.Pool( multiprocessing.cpu_count() )
-    tasks = []
-    tNum = 0
-    max_t = 4
-    while tNum < max_t:
-        tNum += 1
-        tasks.append( (str(tNum),) )
-    results = []
-    for t in tasks:
-        results.append( pool.apply_async( EmailProcessor.runAndGet, t ) )
+    if makeFromScratch:
+        # cpu_count =  multiprocessing.cpu_count()
+        cpu_count = 4
+        pool = multiprocessing.Pool( cpu_count )
+        tasks = []
+        tNum = 0
+        max_t = cpu_count
+        while tNum < max_t:
+            tNum += 1
+            tasks.append( (str(tNum), tNum, cpu_count) )
+        results = []
+        for t in tasks:
+            results.append( pool.apply_async( EmailProcessor.getNgramsBalanced, t ) )
 
-    r = []
-    for result in results:
-        r.append(result.get())
+        r = []
+        for result in results:
+            r.append(result.get())
 
-    fromUnigrams = []
-    fromBigrams = []
-    toUnigrams = []
-    toBigrams = []
-    for result in r:
-        for i in range(4):
-            if i == 0:
-                fromUnigrams.append(result[i])
-            elif i == 1:
-                fromBigrams.append(result[i])
-            elif i == 2:
-                toUnigrams.append(result[i])
-            elif i == 3:
-                toBigrams.append(result[i])
+        fromUnigrams = []
+        fromBigrams = []
+        toUnigrams = []
+        toBigrams = []
+        for result in r:
+            for i in range(4):
+                if i == 0:
+                    fromUnigrams.append(result[i])
+                elif i == 1:
+                    fromBigrams.append(result[i])
+                elif i == 2:
+                    toUnigrams.append(result[i])
+                elif i == 3:
+                    toBigrams.append(result[i])
 
-    # fromUnigrams = [r1[0], r2[0], r3[0], r4[0], r5[0], r6[0], r7[0], r8[0]]
-    # fromBigrams = [r1[1], r2[1], r3[1], r4[1], r5[1], r6[1], r7[1], r8[1]]
-    # toUnigrams = [r1[2], r2[2], r3[2], r4[2], r5[2], r6[2], r7[2], r8[2]]
-    # toBigrams = [r1[3], r2[3], r3[3], r4[3], r5[3], r6[3], r7[3], r8[3]]
+        # fromUnigrams = [r1[0], r2[0], r3[0], r4[0], r5[0], r6[0], r7[0], r8[0]]
+        # fromBigrams = [r1[1], r2[1], r3[1], r4[1], r5[1], r6[1], r7[1], r8[1]]
+        # toUnigrams = [r1[2], r2[2], r3[2], r4[2], r5[2], r6[2], r7[2], r8[2]]
+        # toBigrams = [r1[3], r2[3], r3[3], r4[3], r5[3], r6[3], r7[3], r8[3]]
 
-    upspeakUnigramModel = mergeGrams(toUnigrams)
-    upspeakBigramModel = mergeGrams(toBigrams)
-    downspeakUnigramModel = mergeGrams(fromUnigrams)
-    downspeakBigramModel = mergeGrams(fromBigrams)
+        upspeakUnigramModel = mergeGrams(toUnigrams)
+        upspeakBigramModel = mergeGrams(toBigrams)
+        downspeakUnigramModel = mergeGrams(fromUnigrams)
+        downspeakBigramModel = mergeGrams(fromBigrams)
 
-    with open('models/upspeakUnigramModel.json', 'w') as f:
-        json.dump(upspeakUnigramModel, f)
-    with open('models/upspeakBigramModel.json', 'w') as f:
-        json.dump(upspeakBigramModel, f)
-    with open('models/downspeakUnigramModel.json', 'w') as f:
-        json.dump(downspeakUnigramModel, f)
-    with open('models/downspeakBigramModel.json', 'w') as f:
-        json.dump(downspeakUnigramModel, f)
+        with open('models/upspeakUnigramModel.json', 'w') as f:
+            json.dump(upspeakUnigramModel, f)
+        with open('models/upspeakBigramModel.json', 'w') as f:
+            json.dump(upspeakBigramModel, f)
+        with open('models/downspeakUnigramModel.json', 'w') as f:
+            json.dump(downspeakUnigramModel, f)
+        with open('models/downspeakBigramModel.json', 'w') as f:
+            json.dump(downspeakUnigramModel, f)
 
 
 
@@ -233,9 +260,9 @@ def main():
         if len(param) > 0:
             if param[-1] in '!?.':
                 param = param[:-1]
-            print(calculateMLE(2, str(param)))
+            print(calculateAllMLEs(2, str(param)))
     else:
-        print(calculateMLE(2, 'I wanted to ask you to give your recommendation to my friend'))
+        print(calculateAllMLEs(2, 'I wanted to ask you to give your recommendation to my friend'))
 
 if __name__ == '__main__':
     main()
