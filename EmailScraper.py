@@ -26,10 +26,7 @@ def jsonify_file(input_file_name, output_file_name):
 	#  	Reinitialize cur_email and content for the next email.
 	#  Once you are done running through all lines, write the list out as a json
 	with open(input_file_name, 'r', encoding=None, errors='replace') as file:
-		try:
-			data = file.readlines() #get data of email
-		except:
-			return
+		data = file.readlines() #get data of email
 		#We're now going to parse the email. Our assumptions:
 		#1. There is only one "To" entity
 		#2. There is only one "From" entity
