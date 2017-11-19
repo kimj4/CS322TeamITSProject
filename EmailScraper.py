@@ -42,8 +42,6 @@ def jsonify_file(input_file_name, output_file_name):
 		isDisclaimer = False # in an effort to get rid of the FL information law disclaimer
 		for line in data:
 
-			# if '’' in line:
-			# 	print(line)
 			line = line.replace('’', '\'')
 
 			line = line.replace('> ', '')
@@ -126,8 +124,6 @@ def scrape(thread_name, thread_number, total_thread_count):
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
 
-	print
-
 	count = 0
 	count_to_start = 0;
 	for file in os.listdir(directory):
@@ -156,7 +152,6 @@ def main():
 	tasks = []
 	tNum = 0
 	max_t = cpu_count
-	print(str(cpu_count))
 	while tNum < max_t:
 		tNum += 1
 		tasks.append( (str(tNum), tNum, cpu_count) )
@@ -168,9 +163,6 @@ def main():
 	for result in results:
 		r.append(result.get())
 
-	# input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
-	# output_file_name = 'emails.json'
-	# jsonify_file(input_file_name, output_file_name)
 
 if __name__ == '__main__':
 	main()
