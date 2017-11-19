@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*- 
+
 #this is an implementation to take a given email and scrape the from, to date, subject, and body of email from it.
 import os
 import re
