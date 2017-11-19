@@ -310,8 +310,8 @@ def getNgramsBalanced(thread_name, thread_number, total_thread_count):
     fromJeb, toJeb = divideEmailsBySender(data)
     toJeb = toJeb[:len(fromJeb)]
 
-    print(len(fromJeb))
-    print(len(toJeb))
+    # print(len(fromJeb))
+    # print(len(toJeb))
 
 
     # these are all json objects, need to merge their bodies.
@@ -330,7 +330,7 @@ def getNgramsBalanced(thread_name, thread_number, total_thread_count):
     toBigram = createNgram(2, toJebTrainingCorpus)
 
     #return (fromUnigram, toUnigram, from)
-    print(str(thread_name) + ' is done!')
+    # print(str(thread_name) + ' is done!')
     return (fromUnigram, fromBigram, toUnigram, toBigram)
 
 def runAndGet(thread_name, thread_number, total_thread_count):

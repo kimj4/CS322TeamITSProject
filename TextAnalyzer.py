@@ -60,6 +60,7 @@ def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
 
     # right now, only calculates MLE, specific to bigrams/unigrams
     for key, value in sentenceNGrams.items():
+        print ('currently looking at {}'.format(key))
         if N > 1:
             # CHECK IF THIS STILL WORKS
             if key.split(' ')[-2] == '<s>':
