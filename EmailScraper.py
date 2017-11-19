@@ -1,3 +1,5 @@
+# -*- coding: utf8 -*- 
+
 #this is an implementation to take a given email and scrape the from, to date, subject, and body of email from it.
 import os
 import re
@@ -5,7 +7,7 @@ import json
 from pprint import pprint
 import multiprocessing
 from pathlib import Path
-
+import math
 
 #this is a placeholder for when we feed in the text#
 contents = ""
@@ -26,10 +28,7 @@ def jsonify_file(input_file_name, output_file_name):
 	#  	Reinitialize cur_email and content for the next email.
 	#  Once you are done running through all lines, write the list out as a json
 	with open(input_file_name, 'r', encoding=None, errors='replace') as file:
-		try:
-			data = file.readlines() #get data of email
-		except:
-			return
+		data = file.readlines() #get data of email
 		#We're now going to parse the email. Our assumptions:
 		#1. There is only one "To" entity
 		#2. There is only one "From" entity
@@ -42,8 +41,6 @@ def jsonify_file(input_file_name, output_file_name):
 		isDisclaimer = False # in an effort to get rid of the FL information law disclaimer
 		for line in data:
 
-			# if '’' in line:
-			# 	print(line)
 			line = line.replace('’', '\'')
 
 			line = line.replace('> ', '')
@@ -118,15 +115,14 @@ def jsonify_file(input_file_name, output_file_name):
 
 def scrape(thread_name, thread_number, total_thread_count):
 	count_limit = 626
-	num_to_process = count_limit // total_thread_count
+	num_to_process = math.ceil(1.0 * count_limit / total_thread_count)
+	print(str(thread_number) + ' to process: ' + str(num_to_process) )
 
 	start = num_to_process * (thread_number - 1)
 
 	directory_name = 'JebBushEmails'
 	out_directory_name = 'output'
 	directory = os.fsencode(directory_name)
-
-	print
 
 	count = 0
 	count_to_start = 0;
@@ -136,7 +132,6 @@ def scrape(thread_name, thread_number, total_thread_count):
 		else:
 			filename = os.fsdecode(file)
 			if filename.endswith(".txt") and filename[0] != '.':
-				print('processing ' + filename)
 				input_file_name = directory_name + '/' + filename
 				# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
 				output_file_name = out_directory_name + '/' + str(count_to_start) + '.json'
@@ -156,7 +151,6 @@ def main():
 	tasks = []
 	tNum = 0
 	max_t = cpu_count
-	print(str(cpu_count))
 	while tNum < max_t:
 		tNum += 1
 		tasks.append( (str(tNum), tNum, cpu_count) )
@@ -168,9 +162,6 @@ def main():
 	for result in results:
 		r.append(result.get())
 
-	# input_file_name = 'sampleDataset/01+January+2003+Public+2.txt'
-	# output_file_name = 'emails.json'
-	# jsonify_file(input_file_name, output_file_name)
 
 if __name__ == '__main__':
 	main()

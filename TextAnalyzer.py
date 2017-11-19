@@ -42,7 +42,6 @@ def calculateAllMLEs(N, sentence):
 
 
     sentenceNGrams = EmailProcessor.createNgram(N, [sentence])
-    print(sentenceNGrams)
 
 
     calculateMLE(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
@@ -60,6 +59,7 @@ def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
 
     # right now, only calculates MLE, specific to bigrams/unigrams
     for key, value in sentenceNGrams.items():
+        print ('currently looking at {}'.format(key))
         if N > 1:
             # CHECK IF THIS STILL WORKS
             if key.split(' ')[-2] == '<s>':
@@ -106,12 +106,12 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
-    makeFromScratch = False;
-    # makeFromScratch = True;
+   # makeFromScratch = False;
+    makeFromScratch = True;
 
     if makeFromScratch:
-        # cpu_count =  multiprocessing.cpu_count()
-        cpu_count = 16
+        cpu_count =  multiprocessing.cpu_count()
+        # cpu_count = 16
         pool = multiprocessing.Pool( cpu_count )
         tasks = []
         tNum = 0
