@@ -43,103 +43,13 @@ def calculateAllMLEs(N, sentence):
 
     sentenceNGrams = EmailProcessor.createNgram(N, [sentence])
     print(sentenceNGrams)
-    upspeakSentenceMLE = 1;
-    totalUpspeakNMinusOneGrams = sum(upspeakNMinusOneGramModel.values())
-    totalUpspeakNGrams = sum(upspeakNGramModel.values())
 
 
-    topThreeUpspeakProbs = {}
-    minTopThreeUpspeakProb = 0
-    # right now, only calculates upspeak MLE, specific to bigrams/unigrams
-    for key, value in sentenceNGrams.items():
-        if N > 1:
-            # CHECK IF THIS STILL WORKS
-            if key.split(' ')[-2] == '<s>':
-                probability = upspeakNMinusOneGramModel['<s>'] / totalUpspeakNMinusOneGrams
-            elif key in upspeakNGramModel.keys():
-                # print('n-gram found')
-                # calculating P(w1 w2 | w1)
-                prevGram = " ".join(key.split(" ")[:-1])
-                probability = upspeakNGramModel[key] / upspeakNMinusOneGramModel[prevGram]
-            else:
-                probability = 0.000001
+    calculateMLE(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
+    calculateMLE(N, downspeakNGramModel, downspeakNMinusOneGramModel, sentenceNGrams)
+    return
 
-            upspeakSentenceMLE = upspeakSentenceMLE * probability * sentenceNGrams[key]
-            # check if probability is greater than the min of the threee greatest stored probabilities
-            if probability > minTopThreeUpspeakProb:
-                maxEntryLessThanProbability = minTopThreeUpspeakProb
-                for probKey, probValue in topThreeUpspeakProbs.items():
-                    if probKey > maxEntryLessThanProbability and probKey < probability:
-                        maxEntryLessThanProbability = probKey
-
-                topThreeUpspeakProbs[probability] = key
-
-                if len(topThreeUpspeakProbs) > 3:
-                    topThreeUpspeakProbs.pop(min(topThreeUpspeakProbs, key=topThreeUpspeakProbs.get), None)
-        else:
-            if key in upspeakNGramModel.keys():
-                # print('n-gram found')
-                # print(str(probabilityDict[key]))
-                upspeakSentenceMLE = upspeakSentenceMLE * (upspeakNgramModel[key] / totalUpspeakNgrams) * sentenceNGrams[key]
-            else:
-                upspeakSentenceMLE = upspeakSentenceMLE * 0.000001 * sentenceNGrams[key]
-
-    topThreeDownspeakProbs = {}
-    minTopThreeDownspeakProb = 0
-    downspeakSentenceMLE = 1
-    totalDownspeakNMinusOneGrams = sum(downspeakNMinusOneGramModel.values())
-    totalDownspeakNGrams = sum(downspeakNGramModel.values())
-
-    # right now, only calculates downspeak MLE, specific to bigrams/unigrams
-    for key, value in sentenceNGrams.items():
-        if N > 1:
-            if key.split(' ')[-2] == '<s>':
-                # CHECK TO SEE IF THIS IS CORRECT
-                probability = (downspeakNMinusOneGramModel['<s>'] / totalDownspeakNMinusOneGrams)
-                #downspeakSentenceMLE = downspeakSentenceMLE * probability * sentenceNGrams[key]
-            elif key in downspeakNGramModel.keys():
-                # print('n-gram found')
-                # calculating P(w1 w2 | w1)
-                prevGram = " ".join(key.split(" ")[:-1])
-                probability = (downspeakNGramModel[key] / downspeakNMinusOneGramModel[prevGram])
-                #downspeakSentenceMLE = downspeakSentenceMLE * probability * sentenceNGrams[key]
-            else:
-                probability = 0.000001
-                #downspeakSentenceMLE = downspeakSentenceMLE * probability * sentenceNGrams[key]
-            downspeakSentenceMLE = downspeakSentenceMLE * probability * sentenceNGrams[key]
-
-            # check if probability is greater than the min of the threee greatest stored probabilities
-            if probability > minTopThreeDownspeakProb:
-                maxEntryLessThanProbability = minTopThreeDownspeakProb
-                for probKey, probValue in topThreeDownspeakProbs.items():
-                    if probKey > maxEntryLessThanProbability and probKey < probability:
-                        maxEntryLessThanProbability = probKey
-
-                topThreeDownspeakProbs[probability] = key
-
-                if len(topThreeDownspeakProbs) > 3:
-                    topThreeDownspeakProbs.pop(min(topThreeDownspeakProbs, key=topThreeDownspeakProbs.get), None)
-
-        else:
-            if key in downspeakNGramModel.keys():
-                # print('n-gram found')
-                # print(str(probabilityDict[key]))
-                downspeakSentenceMLE = downspeakSentenceMLE * (downspeakNGramModel[key] / totalDownspeakNGrams) * sentenceNGrams[key]
-            else:
-                downspeakSentenceMLE = downspeakSentenceMLE * 0.000001 * sentenceNGrams[key]
-
-    print('upspeak MLE is ', upspeakSentenceMLE)
-    print(topThreeUpspeakProbs)
-    print('downspeak MLE is ', downspeakSentenceMLE)
-    print(topThreeDownspeakProbs)
-
-    calculateMLE(upspeakNgramModel, upspeakNMinusOneGramModel, sentenceNGrams)
-    calculateMLE(downspeakNgramModel, downspeakNMinusOneGramModel, sentenceNGrams)
-
-
-    return downspeakSentenceMLE
-
-def calculateMLE(nGramModel, nMinusOneGramModel, sentenceNGrams):
+def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
     sentenceMLE = 1;
     totalNMinusOneGrams = sum(nMinusOneGramModel.values())
     totalNGrams = sum(nGramModel.values())
@@ -151,7 +61,7 @@ def calculateMLE(nGramModel, nMinusOneGramModel, sentenceNGrams):
         if N > 1:
             # CHECK IF THIS STILL WORKS
             if key.split(' ')[-2] == '<s>':
-                probability = NMinusOneGramModel['<s>'] / totalNMinusOneGrams
+                probability = nMinusOneGramModel['<s>'] / totalNMinusOneGrams
             elif key in nGramModel.keys():
                 # print('n-gram found')
                 # calculating P(w1 w2 | w1)
@@ -194,12 +104,12 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
-    # makeFromScratch = False;
-    makeFromScratch = True;
+    makeFromScratch = False;
+    # makeFromScratch = True;
 
     if makeFromScratch:
         # cpu_count =  multiprocessing.cpu_count()
-        cpu_count = 4
+        cpu_count = 16
         pool = multiprocessing.Pool( cpu_count )
         tasks = []
         tNum = 0
@@ -230,11 +140,6 @@ def main():
                 elif i == 3:
                     toBigrams.append(result[i])
 
-        # fromUnigrams = [r1[0], r2[0], r3[0], r4[0], r5[0], r6[0], r7[0], r8[0]]
-        # fromBigrams = [r1[1], r2[1], r3[1], r4[1], r5[1], r6[1], r7[1], r8[1]]
-        # toUnigrams = [r1[2], r2[2], r3[2], r4[2], r5[2], r6[2], r7[2], r8[2]]
-        # toBigrams = [r1[3], r2[3], r3[3], r4[3], r5[3], r6[3], r7[3], r8[3]]
-
         upspeakUnigramModel = mergeGrams(toUnigrams)
         upspeakBigramModel = mergeGrams(toBigrams)
         downspeakUnigramModel = mergeGrams(fromUnigrams)
@@ -250,11 +155,6 @@ def main():
             json.dump(downspeakUnigramModel, f)
 
 
-
-    # with open('models/upspeakUnigramModel.json', 'r') as fp:
-    #     upspeakUnigramModel = json.load(fp)
-    #print(upspeakUnigramModel)
-    #print(type(upspeakUnigramModel))
     if len(sys.argv) > 1:
         param = sys.argv[1]
         if len(param) > 0:
