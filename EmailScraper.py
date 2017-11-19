@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf8 -*- 
 
 #this is an implementation to take a given email and scrape the from, to date, subject, and body of email from it.
@@ -8,7 +7,7 @@ import json
 from pprint import pprint
 import multiprocessing
 from pathlib import Path
-
+import math
 
 #this is a placeholder for when we feed in the text#
 contents = ""
@@ -116,7 +115,8 @@ def jsonify_file(input_file_name, output_file_name):
 
 def scrape(thread_name, thread_number, total_thread_count):
 	count_limit = 626
-	num_to_process = count_limit // total_thread_count
+	num_to_process = math.ceil(1.0 * count_limit / total_thread_count)
+	print(str(thread_number) + ' to process: ' + str(num_to_process) )
 
 	start = num_to_process * (thread_number - 1)
 

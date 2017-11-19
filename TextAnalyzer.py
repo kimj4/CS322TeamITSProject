@@ -42,7 +42,6 @@ def calculateAllMLEs(N, sentence):
 
 
     sentenceNGrams = EmailProcessor.createNgram(N, [sentence])
-    print(sentenceNGrams)
 
 
     calculateMLE(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
@@ -107,12 +106,12 @@ def mergeGrams(list_of_grams):
     return merged
 
 def main():
-    makeFromScratch = False;
-    # makeFromScratch = True;
+   # makeFromScratch = False;
+    makeFromScratch = True;
 
     if makeFromScratch:
-        # cpu_count =  multiprocessing.cpu_count()
-        cpu_count = 16
+        cpu_count =  multiprocessing.cpu_count()
+        # cpu_count = 16
         pool = multiprocessing.Pool( cpu_count )
         tasks = []
         tNum = 0
