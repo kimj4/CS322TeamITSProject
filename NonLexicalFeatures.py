@@ -137,6 +137,70 @@ def getMinDownspeakSentenceLength(emailCorpus):#Returns minimum length of a sent
         return minSentLength
 
 
+###WEIGHTING METHODS EXPLANATION####
+#The following two methods calculate weights for probabilities.
+#There are two broad assumptions: Longer sentences are more likely to be upspeak, and upspeak sentences have higher average lengths than downspeak sentences.
+#A sentence that is longer than the longest upspeak found in the corpus is automatically classified as upspeak.
+#A sentence shorter than the shortest upspeak in the corpus is automatically classified as not-upspeak.
+#A sentence longer than longest downspeak in corpus is automatically classified as not-downspeak.
+#A sentence shorter than shortest downspeak in corpus is automatically classified as downspeak. 
+
+#The weighting calculation itself assumes a distribution centered around the average length. A sentence that matches average length of upspeak or downspeak
+#has a corresponding weight of 1. 
+#For upspeak, as sentence length approaches the longest upspeak in the corpus, the weight grows to infinity.
+#As sentence length approaches shortest upspeak length in the corpus, the weight shrinks linearly to 0.
+#For downspeak, as sentence length approaches shortest downspeak in the corpus, weight grows to infinity.
+#As sentence length approaches longest downspeak in the corpus, weight shrinks linearly to 0.
+
+def sentenceWeighterUpspeak(sentence, ngramprobability):
+    maxUpspeak = getMaxUpspeakSentenceLength(corpus) #FIX THIS- CORPUS IS JUST A PLACEHOLDER
+    minUpspeak = getMinUpspeakSentenceLength(corpus)
+   
+    averageUpspeak = getAverageUpspeakSentenceLength(corpus)
+    
+
+
+    sentenceLength = len(word_tokenize(sentence)) #get length of whole sentence that you just input
+
+    #first we calculate our upspeak weighting modifier
+    upspeakWeight = 1
+    #the further away to  the right (longer) from downspeak length, the more likely it's upspeak.
+
+    if (sentenceLength > averageUpspeak) and (sentenceLength < maxUpspeak): #longer sentences are more likely to be upspeak
+        upspeakWeight = maxUpspeak/(maxUpspeak - sentenceLength)
+    #elif (sentenceLength > maxUpspeak):
+     #   print("This sentence is almost certainly upspeak")
+      #      return
+    elif (sentenceLength < averageUpspeak) and (sentenceLength >= minUpspeak):
+        upspeakWeight = (abs(sentenceLength-MinUpspeak))/averageUpspeak
+    elif (sentenceLength < minUpspeak)
+        print ("This sentence is almost certainly not upspeak")
+            return
+
+            
+
+    #if sentence is not clearly one or other, return the weighted calculation
+    ngramprobability = ngramprobability * upspeakWeight
+    return ngramprobability
+
+def sentenceWeighterDownspeak(sentence, ngramprobability):
+    minDownspeak = getMinDownspeakSentenceLength(corpus)
+    maxDownspeak = getMinDownspeakSentenceLength(corpus)
+    averageDownspeak = getAverageDownspeakSentenceLength(corpus)
+    #now we calculate downspeak weighting
+
+    downspeakWeight = 1
+    if (sentenceLength > averageDownspeak) and (sentenceLength < maxDownspeak): #longer sentences are less likely to be downspeak
+        downspeakWeight = (maxDownspeak-sentenceLength)/maxDownspeak
+    elif (sentenceLength < averageDownspeak) and (sentenceLength < minDownspeak):
+        downspeakWeight = averageDownspeak/(sentenceLength - minDownspeak)
+    elif (sentenceLength > maxDownspeak): #sentence is almost certainly not downspeak
+        print("this sentence is almost certainly not downspeak")
+        return
+    #add a case for less than minimum downspeak? Then the output may just be "too little information to tell either way..."
+
+    ngramprobability = ngramprobability * downspeakWeight
+    return ngramprobability
 
     
 print (str(getAverageUpspeakEmailLength("exampleCorpus.json")))
