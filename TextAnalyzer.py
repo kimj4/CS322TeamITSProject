@@ -56,6 +56,8 @@ def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
 
     topThreeProbs = {}
     minTopThreeProb = 0
+    unkCount = 0
+
     # right now, only calculates MLE, specific to bigrams/unigrams
     for key, value in sentenceNGrams.items():
         if N > 1:
@@ -68,7 +70,7 @@ def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
                 prevGram = " ".join(key.split(" ")[:-1])
                 probability = nGramModel[key] / nMinusOneGramModel[prevGram]
             else:
-                probability = 0.000001
+                probability = (1 / totalNMinusOneGrams)
 
             sentenceMLE = sentenceMLE * probability * sentenceNGrams[key]
             # check if probability is greater than the min of the threee greatest stored probabilities
@@ -88,7 +90,7 @@ def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
                 # print(str(probabilityDict[key]))
                 sentenceMLE = sentenceMLE * (nGramModel[key] / totalNgrams) * sentenceNGrams[key]
             else:
-                sentenceMLE = sentenceMLE * 0.000001 * sentenceNGrams[key]
+                sentenceMLE = sentenceMLE * (1 / totalNMinusOneGrams) * sentenceNGrams[key]
     print('MLE is ', sentenceMLE)
     print(topThreeProbs)
 
