@@ -129,7 +129,6 @@ def scrape(thread_name, thread_number, total_thread_count):
 		else:
 			filename = os.fsdecode(file)
 			if filename.endswith(".txt") and filename[0] != '.':
-				print('processing ' + filename)
 				input_file_name = directory_name + '/' + filename
 				# output_file_name = out_directory_name + '/' + filename.split('.')[0] + '.json'
 				output_file_name = out_directory_name + '/' + str(count_to_start) + '.json'
