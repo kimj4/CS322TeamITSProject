@@ -45,8 +45,10 @@ def calculateAllMLEs(N, sentence):
     sentenceNGrams = EmailProcessor.createNgram(N, [sentence])
 
 
-    calculateMLE(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
-    calculateMLE(N, downspeakNGramModel, downspeakNMinusOneGramModel, sentenceNGrams)
+    upspeakMLE = calculateMLE(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
+    downspeakMLE = calculateMLE(N, downspeakNGramModel, downspeakNMinusOneGramModel, sentenceNGrams)
+    sentenceWeighterUpspeak(sentence, upspeakMLE)
+    sentenceweighterDownspeak(sentence, downspeakMLE)
     return
 
 def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
