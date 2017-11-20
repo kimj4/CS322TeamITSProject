@@ -1,4 +1,4 @@
-#import simplebayes
+import simplebayes
 import EmailProcessor
 import json
 import sys
@@ -9,9 +9,9 @@ from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 from nltk import sent_tokenize
 from nltk import tokenize
+import pickle
 
 
-#bayes = simplebayes.SimpleBayes()
 
 # def bayesianLearn(emailCorpus): #pass in email corpus filename as string
 # 	with open(emailCorpus) as json_data:
@@ -20,21 +20,35 @@ from nltk import tokenize
 # 			if (email.get("to") == "Jeb Bush"):#if goes to Jeb Bush, then upspeak.
 # 				 sentences = sent_tokenize(email.get("body")) #get the body text and tokenize it into sentences.
 # 				 for sentence in sentences:
-# 				 	#bayes.train("upspeak", sentence)
+# 				 	bayes.train("upspeak", sentence)
 # 			elif (email.get("from") == "Jeb Bush"): #if from Jeb Bush, downspeak
 # 				sentences = sent_tokenize(email.get("body"))
 # 				for sentence in sentences:
-# 					#bayes.train("downspeak", sentence)
+# 					bayes.train("downspeak", sentence)
 
-def bayesianTrain():
-	for type in ['Upspeak', 'Downspeak']:
-		with open('models/bayesian' + type + 'TrainingCorpus.json', 'r') as fp:
-			trainingData = json.load(fp)
-			for emailDict in trainingData:
-				sentences = tokenize.sent_tokenize(emailDict['body'])
-				for sentence in sentences:
-					print(sentence)
-					#bayes.train(type.lower(), sentence)
+def bayesianTrain(pickleFile=None, retrain=True):
+	bayes = simplebayes.SimpleBayes()
+	results = {'predictedDownspeakActualDownspeak': 0,
+                   'predictedDownspeakActualUpspeak': 0,
+                   'predictedUpspeakActualUpspeak': 0,
+                   'predictedUpspeakActualDownspeak': 0}
+
+	if retrain:
+		for type in ['Upspeak', 'Downspeak']:
+			with open('models/bayesian' + type + 'TrainingCorpus.json', 'r') as fp:
+				trainingData = json.load(fp)
+				for emailDict in trainingData:
+					sentences = tokenize.sent_tokenize(emailDict['body'])
+					for sentence in sentences:
+						# print(sentence)
+						bayes.train(type.lower(), sentence)
+		with open(pickleFile, 'wb') as f:
+			pickle.dump(bayes, f)
+	else:
+		with open(pickleFile, 'rb') as f:
+			bayes = pickle.load(f)
+
+
 
 	for type in ['Upspeak', 'Downspeak']:
 		with open('models/bayesian' + type + 'TestingCorpus.json', 'r') as fp:
@@ -42,8 +56,21 @@ def bayesianTrain():
 			for emailDict in testData:
 				sentences = tokenize.sent_tokenize(emailDict['body'])
 				for sentence in sentences:
-					print(sentence)
-					#print(bayes.score(sentence))
+					# print(sentence)
+					tempScore = bayes.score(sentence)
+					# print(tempScore)
+					if 'upspeak' in tempScore.keys() and 'downspeak' in tempScore.keys():
+						if (tempScore['upspeak'] > tempScore['downspeak']):
+							if (type == 'Upspeak'):
+								results['predictedUpspeakActualUpspeak'] += 1
+							else:
+								results['predictedUpspeakActualDownspeak'] += 1
+						elif (tempScore['upspeak'] < tempScore['downspeak']):
+							if (type == 'Upspeak'):
+								results['predictedDownspeakActualUpspeak'] += 1
+							else:
+								results['predictedDownspeakActualDownspeak'] += 1
+	print(results)
 
 
 
@@ -51,8 +78,10 @@ def bayesianUpspeakAnalysis(sentence):
 	print("bayes score for this sentence is " + bayes.score(sentence))
 
 def main():
+	bayes = simplebayes.SimpleBayes()
+
 	# makeFromScratch = False;
-	makeFromScratch = True;
+	makeFromScratch = False;
 
 	if makeFromScratch:
 		cpu_count =  multiprocessing.cpu_count()
@@ -108,7 +137,8 @@ def main():
 		with open('models/bayesianUpspeakTestingCorpus.json', 'w') as fp:
 			json.dump(upspeakTestingCorpus, fp, indent = 4)
 
-		bayesianTrain()
+	# bayesianTrain(retrain=True, pickleFile='models/bayes/bayes.pickle')
+	bayesianTrain(retrain=False, pickleFile='models/bayes/bayes.pickle')
 
 if __name__ == '__main__':
 	main()
