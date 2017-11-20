@@ -2,7 +2,7 @@
 
 ## Setup
 
-Note: multiple parts of the analysis use multiprocessing to speed up the runtime. All of the listed commands work quickly on Carleton's mirage server, which has 72 cpus available. If fewer cpus are available, it can take significantly more time.
+Note: several parts of the analysis use multiprocessing to speed up the runtime. All of the listed commands *up to but not including* Simple Bayesian analysis commands work quickly on Carleton's mirage server, which has 72 cpus available. If fewer cpus are available, it can take significantly more time.
 
 The actual corpus needs to be downloaded on local machines due to GitHub's repository size constraints. Download full corpus of emails from [here](https://americanbridgepac.org/jeb-bushs-gubernatorial-email-archive/). Create a folder in the main directory named JebBushEmails and extract the contents of the download into there.
 
@@ -20,12 +20,11 @@ If runtime is a concern, set `makeFromScratch = False` in the first line of Text
 
 ### Simple Bayesian analysis
 
+*Note: this cannot run on mirage.mathcs.carleton.edu without installing simplebayes. We could not install the package due to ownership restrictions, so we ran it on a local Linux machine instead.*
+
 `sudo pip install simplebayes`
 
 `python3 BayesianMethod.py`
-
-### CNN analysis
-
 
 ### Libraries and packages
 
@@ -34,10 +33,3 @@ If runtime is a concern, set `makeFromScratch = False` in the first line of Text
 - NLTK
 
 - SimpleBayesian
-
-- TensorFlow
-
-
-Plans
-- process emails, output a model
-- try to see if it can distinguish between emails coming to Jeb vs emails Jeb sent
