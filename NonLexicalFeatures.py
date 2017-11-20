@@ -193,7 +193,7 @@ def sentenceWeighterUpspeak(sentence, ngramprobability):
       #      return
     elif (sentenceLength < averageUpspeak) and (sentenceLength >= minUpspeak):
         upspeakWeight = (abs(sentenceLength-MinUpspeak))/averageUpspeak
-    elif (sentenceLength < minUpspeak)
+    elif (sentenceLength < minUpspeak):
         print ("This sentence is almost certainly not upspeak")
             return
 
