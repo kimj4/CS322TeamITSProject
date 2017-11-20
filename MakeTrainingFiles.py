@@ -18,7 +18,7 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
             dictList = json.load(fp)
             for dict in dictList:
                 sentence = dict['body']
-                print(sentence)
+                # print(sentence)
                 # print('Need to change to and from key recognition')
 
                 if dict['from'] == 'Jeb Bush':
