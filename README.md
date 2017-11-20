@@ -8,15 +8,26 @@ Run `python3 EmailScraper.py` to prepare emails. The emails will be saved to num
 
 ### N-gram analysis
 
-Run `python3 TextAnalyzer.py`
+`python3 TextAnalyzer.py`
 
 ### Simple Bayesian analysis
 
-Run `python3 BayesianMethod.py`
+`sudo pip install simplebayes`
+
+`python3 BayesianMethod.py`
 
 ### CNN analysis
 
 
+### Libraries and packages
+
+- Python Standard Library
+
+- NLTK
+
+- SimpleBayesian
+
+- TensorFlow
 
 
 Plans
