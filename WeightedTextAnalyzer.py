@@ -1,4 +1,5 @@
 import EmailProcessor
+import NonLexicalFeatures
 import json
 import sys
 import cProfile
