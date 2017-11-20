@@ -24,13 +24,25 @@ def dataSplit(trainingRatio, sentences):
     # make a copy so that the original sentences is not changed
     testSet = copy.deepcopy(sentences)
     trainingSet = []
+    newTestSet = []
     numTrainingSentences = round(len(sentences) * trainingRatio)
     for i in range(0, numTrainingSentences):
         # select a random sentence, pop it from the testSet, push it on the trainingSet
         randSentence = random.choice(testSet)
-        trainingSet.append(randSentence)
+        trainingSet.append(randSentence.copy())
         testSet.remove(randSentence)
-    return (trainingSet, testSet)
+    for i in range(0, len(testSet)):
+        newTestSet.append(dict(testSet[i].copy()))
+        #newTestSet.append({'body': 'fdhakjrhekjagse'})
+
+    # with open('models/aTestCorpus.json', 'w', encoding='utf-8') as fp:
+    #     json.dump(newTestSet, fp, indent = 4, ensure_ascii=False)
+    #
+    # for i in range(0, len(newTestSet)):
+    #     print(newTestSet[i])
+    #     print("\n")
+
+    return (trainingSet, newTestSet)
 
 def createNgram(N, sentences):
     '''
@@ -310,13 +322,16 @@ def getNgramsBalanced(thread_name, thread_number, total_thread_count):
     fromJeb, toJeb = divideEmailsBySender(data)
     toJeb = toJeb[:len(fromJeb)]
 
-    # print(len(fromJeb))
-    # print(len(toJeb))
-
 
     # these are all json objects, need to merge their bodies.
     fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
     toJebTraining, toJebTest = dataSplit(.7, toJeb)
+
+    print(str(len(fromJebTest)))
+    # with open('models/downspeakTestCorpus.json', 'w') as fp:
+    #     json.dump(fromJebTest, fp, indent = 4)
+    # with open('models/upspeakTestCorpus.json', 'w') as fp:
+    #     json.dump(toJebTest, fp, indent = 4)
 
     # list of sentences that's ready for n-gram model creation
     fromJebTrainingCorpus = prepareEmailsForNGram(fromJebTraining)
@@ -330,8 +345,8 @@ def getNgramsBalanced(thread_name, thread_number, total_thread_count):
     toBigram = createNgram(2, toJebTrainingCorpus)
 
     #return (fromUnigram, toUnigram, from)
-    # print(str(thread_name) + ' is done!')
-    return (fromUnigram, fromBigram, toUnigram, toBigram)
+    print(str(thread_name) + ' is done!')
+    return (fromUnigram, fromBigram, toUnigram, toBigram, fromJebTest, toJebTest)
 
 def runAndGet(thread_name, thread_number, total_thread_count):
     punkt_param = PunktParameters()

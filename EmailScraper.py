@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*- 
+# -*- coding: utf8 -*-
 
 #this is an implementation to take a given email and scrape the from, to date, subject, and body of email from it.
 import os
@@ -45,6 +45,20 @@ def jsonify_file(input_file_name, output_file_name):
 
 			line = line.replace('> ', '')
 			line = line.replace('>', '')
+			line = line.replace(']', '\]')
+			line = line.replace('[', '\[')
+			line = line.replace('{', '\{')
+			line = line.replace('}', '\}')
+			line = line.replace("'", "\'")
+			line = line.replace('"', '\"')
+			line = line.translate(str.maketrans({"-":  r"\-",
+                                          "]":  r"\]",
+                                          "\\": r"\\",
+                                          "^":  r"\^",
+                                          "$":  r"\$",
+                                          "*":  r"\*",
+                                          ".":  r"\."}))
+
 			# if 'Original Message' in line:
 			# 	print(line)
 
