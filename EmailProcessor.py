@@ -286,6 +286,44 @@ def prepareEmailsForNGram(emails):
 
     return cleanedSentences
 
+def getBayesianSetBalanced(thread_name, thread_number, total_thread_count):
+    punkt_param = PunktParameters()
+    punkt_param.abbrev_types = set(['dr', 'vs', 'mr', 'mrs', 'prof', 'inc'])
+    sentence_splitter = PunktSentenceTokenizer(punkt_param)
+
+    data = []
+
+    num_files_to_include = 625
+    start = 0
+    num_threads = total_thread_count
+    num_files_to_include = math.ceil((1.0 * num_files_to_include) / total_thread_count)
+    start = num_files_to_include * (thread_number - 1)
+
+    cur_count = 0;
+    directory_name = 'output'
+    directory = os.fsencode(directory_name)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".json"):
+            if int(filename.split('.')[0]) >= start:
+                input_file_name = directory_name + '/' +filename
+                with open(input_file_name, 'r') as f:
+                    tempdata = json.load(f)
+                    data.extend(tempdata)
+                cur_count += 1
+        if cur_count == num_files_to_include:
+            break
+                # print(len(data))
+
+    fromJeb, toJeb = divideEmailsBySender(data)
+    toJeb = toJeb[:len(fromJeb)]
+
+
+    # these are all json objects, need to merge their bodies.
+    fromJebTraining, fromJebTest = dataSplit(.7, fromJeb)
+    toJebTraining, toJebTest = dataSplit(.7, toJeb)
+    return (fromJebTraining, toJebTraining, fromJebTest, toJebTest)
+
 def getNgramsBalanced(thread_name, thread_number, total_thread_count):
     '''
     Build sets of ngrams but use only as many nonjeb emails as there are jeb
