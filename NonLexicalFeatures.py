@@ -3,37 +3,57 @@ import json
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import sent_tokenize
 
-def getAverageUpspeakEmailLength(emailCorpus): #will get the length of the body of emails in a given email corpus. Length is in terms of word count.
+def getAverageUpspeakEmailLength(): #will get the length of the body of emails in a given email corpus. Length is in terms of word count.
     emailCounter = 0
     lengthCounter = 0
-    with open (emailCorpus) as json_data:
-        emails = json.load(json_data) #opens our email corpus, which is a list of emails bodies.
-        
-        for elem in emails:
-            if (elem.get("to") == "Jeb Bush"): #if the email is to Jeb
-                bodyText = elem.get("body")
-                wordTokens = word_tokenize(bodyText) #returns list of word tokens in the bodyText
-                wordCount = len(wordTokens)
-                lengthCounter = lengthCounter + wordCount
-                emailCounter += 1
-        
+    directory_name = 'output'
+    directory = os.fsencode(directory_name)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".json"):
+            if int(filename.split('.')[0]) >= start:
+                input_file_name = directory_name + '/' +filename
+                with open(input_file_name, 'r') as f:
+                    
+
+                #with open (emailCorpus) as json_data:
+                    emails = json.load(json_data) #opens our email corpus, which is a list of emails bodies.
+                    
+                    for elem in emails:
+                        if (elem.get("to") == "Jeb Bush"): #if the email is to Jeb
+                            bodyText = elem.get("body")
+                            wordTokens = word_tokenize(bodyText) #returns list of word tokens in the bodyText
+                            wordCount = len(wordTokens)
+                            lengthCounter = lengthCounter + wordCount
+                            emailCounter += 1
+                    
         averageEmailLength = lengthCounter/emailCounter
         
         return averageEmailLength
     
-def getAverageDownspeakEmailLength(emailCorpus): #length of average emails from Jeb
+def getAverageDownspeakEmailLength(): #length of average emails from Jeb
     emailCounter = 0
     lengthCounter = 0
-    with open (emailCorpus) as json_data:
-        emails = json.load(json_data) #opens our email corpus, which is a list of emails bodies.
-        
-        for elem in emails:
-            if (elem.get("from") == "Jeb Bush"): #if the email is from Jeb
-                bodyText = elem.get("body")
-                wordTokens = word_tokenize(bodyText) #returns list of word tokens in the bodyText
-                wordCount = len(wordTokens)
-                lengthCounter = lengthCounter + wordCount
-                emailCounter += 1
+
+    directory_name = 'output'
+    directory = os.fsencode(directory_name)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".json"):
+            if int(filename.split('.')[0]) >= start:
+                input_file_name = directory_name + '/' +filename
+                with open(input_file_name, 'r') as json_data:
+                 
+                #with open (emailCorpus) as json_data:
+                    emails = json.load(json_data) #opens our email corpus, which is a list of emails bodies.
+                    
+                    for elem in emails:
+                        if (elem.get("from") == "Jeb Bush"): #if the email is from Jeb
+                            bodyText = elem.get("body")
+                            wordTokens = word_tokenize(bodyText) #returns list of word tokens in the bodyText
+                            wordCount = len(wordTokens)
+                            lengthCounter = lengthCounter + wordCount
+                            emailCounter += 1
         
         averageEmailLength = lengthCounter/emailCounter
         
@@ -153,10 +173,10 @@ def getMinDownspeakSentenceLength(emailCorpus):#Returns minimum length of a sent
 #As sentence length approaches longest downspeak in the corpus, weight shrinks linearly to 0.
 
 def sentenceWeighterUpspeak(sentence, ngramprobability):
-    maxUpspeak = getMaxUpspeakSentenceLength(corpus) #FIX THIS- CORPUS IS JUST A PLACEHOLDER
-    minUpspeak = getMinUpspeakSentenceLength(corpus)
+    maxUpspeak = getMaxUpspeakSentenceLength() #FIX THIS- CORPUS IS JUST A PLACEHOLDER
+    minUpspeak = getMinUpspeakSentenceLength()
    
-    averageUpspeak = getAverageUpspeakSentenceLength(corpus)
+    averageUpspeak = getAverageUpspeakSentenceLength()
     
 
 
@@ -184,9 +204,9 @@ def sentenceWeighterUpspeak(sentence, ngramprobability):
     return ngramprobability
 
 def sentenceWeighterDownspeak(sentence, ngramprobability):
-    minDownspeak = getMinDownspeakSentenceLength(corpus)
-    maxDownspeak = getMinDownspeakSentenceLength(corpus)
-    averageDownspeak = getAverageDownspeakSentenceLength(corpus)
+    minDownspeak = getMinDownspeakSentenceLength()
+    maxDownspeak = getMinDownspeakSentenceLength()
+    averageDownspeak = getAverageDownspeakSentenceLength()
     #now we calculate downspeak weighting
 
     downspeakWeight = 1
@@ -203,8 +223,8 @@ def sentenceWeighterDownspeak(sentence, ngramprobability):
     return ngramprobability
 
     
-print (str(getAverageUpspeakEmailLength("exampleCorpus.json")))
-print (str(getAverageDownspeakEmailLength("exampleCorpus.json")))  
-print(str(getMinDownspeakSentenceLength("exampleCorpus.json")))
-print(str(getAverageDownspeakSentenceLength("exampleCorpus.json")))      
-print(str(getAverageUpspeakSentenceLength("exampleCorpus.json")))      
+print (str(getAverageUpspeakEmailLength()))
+# print (str(getAverageDownspeakEmailLength("exampleCorpus.json")))  
+# print(str(getMinDownspeakSentenceLength("exampleCorpus.json")))
+# print(str(getAverageDownspeakSentenceLength("exampleCorpus.json")))      
+# print(str(getAverageUpspeakSentenceLength("exampleCorpus.json")))      
