@@ -11,6 +11,8 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
     '''
     json_files = [str(x) + '.json' for x in range(start,end + 1)]
     # json_files = [a_json for a_json in os.listdir(path) if a_json.endswith('.json')]
+    from_jeb_string = ''
+    to_jeb_string = ''
     for file in json_files:
         with open(path + '/' + file, 'r') as fp:
             dictList = json.load(fp)
@@ -20,11 +22,13 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
                 # print('Need to change to and from key recognition')
 
                 if dict['from'] == 'Jeb Bush':
-                    filename = 'data/' + from_output_name + '.txt'
+                    from_jeb_string += '\n' + dict['body']
                 else:
-                    filename = 'data/' + to_output_name + '.txt'
-                with open(filename, 'a+') as file:
-                    file.write(sentence)
+                    to_jeb_string += '\n' + dict['body']
+    with open('data/' + from_output_name + '.txt', 'w+') as file:
+        file.write(from_jeb_string)
+    with open('data/' + to_output_name + '.txt', 'w+') as file:
+        file.write(to_jeb_string)
 
     return
 
