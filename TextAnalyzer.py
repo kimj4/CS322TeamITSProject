@@ -12,7 +12,6 @@ def calculateAllMLEs(N, sentence):
     '''
     calculates the minimum likelihood estimate on sample sentences for given model
     '''
-
     if N == 1:
         nMinusOnePrefix = 'Uni'
         nPrefix = 'Uni'
@@ -44,10 +43,62 @@ def calculateAllMLEs(N, sentence):
 
     sentenceNGrams = EmailProcessor.createNgram(N, [sentence])
 
-
-    calculateMLE(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
-    calculateMLE(N, downspeakNGramModel, downspeakNMinusOneGramModel, sentenceNGrams)
+    print("\n##### upspeak MLE ######")
+    calculateMLEWithPhrases(N, upspeakNGramModel, upspeakNMinusOneGramModel, sentenceNGrams)
+    print("\n##### downspeak MLE ######")
+    calculateMLEWithPhrases(N, downspeakNGramModel, downspeakNMinusOneGramModel, sentenceNGrams)
     return
+
+def calculateMLEWithPhrases(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
+    '''
+
+    '''
+    sentenceMLE = 1;
+    totalNMinusOneGrams = sum(nMinusOneGramModel.values())
+    totalNGrams = sum(nGramModel.values())
+
+    topThreeProbs = {}
+    minTopThreeProb = 0
+    unkCount = 0
+    knownCount = 0
+
+    # right now, only calculates MLE, specific to bigrams/unigrams
+    for key, value in sentenceNGrams.items():
+        #print ('currently looking at {}'.format(key))
+        if N > 1:
+            if key.split(' ')[-2] == '<s>':
+                probability = nMinusOneGramModel['<s>'] / totalNMinusOneGrams
+            elif key in nGramModel.keys():
+                knownCount += 1
+                # print('n-gram found')
+                # calculating P(w1 w2 | w1)
+                prevGram = " ".join(key.split(" ")[:-1])
+                probability = nGramModel[key] / nMinusOneGramModel[prevGram]
+            else:
+                probability = 0.000001# (1 / totalNMinusOneGrams)
+
+            sentenceMLE = sentenceMLE * probability * sentenceNGrams[key]
+            # check if probability is greater than the min of the threee greatest stored probabilities
+            if probability > minTopThreeProb:
+                maxEntryLessThanProbability = minTopThreeProb
+                for probKey, probValue in topThreeProbs.items():
+                    if probKey > maxEntryLessThanProbability and probKey < probability:
+                        maxEntryLessThanProbability = probKey
+
+                topThreeProbs[probability] = key
+
+                if len(topThreeProbs) > 3:
+                    topThreeProbs.pop(min(topThreeProbs, key=topThreeProbs.get), None)
+        else:
+            if key in nGramModel.keys():
+                sentenceMLE = sentenceMLE * (nGramModel[key] / totalNgrams) * sentenceNGrams[key]
+            else:
+                sentenceMLE = sentenceMLE * (1 / totalNMinusOneGrams) * sentenceNGrams[key]
+    print("MLE", sentenceMLE)
+    print("Highest-probability phrases: ")
+    for string in topThreeProbs.values():
+        print(string)
+    return sentenceMLE
 
 def calculateMLE(N, nGramModel, nMinusOneGramModel, sentenceNGrams):
     '''
@@ -176,9 +227,9 @@ def runOnTestSet(N=2):
                             resultsDict['predictedDownspeakActualDownspeak'] += 1
                         else:
                             resultsDict['predictedDownspeakActualUpspeak'] += 1
-                    else:
-                        print(upspeakMLE)
-                        print(downspeakMLE)
+                    # else:
+                    #     print(upspeakMLE)
+                    #     print(downspeakMLE)
 
     print(resultsDict)
 
@@ -259,9 +310,15 @@ def main():
         with open('models/downspeakBigramModel.json', 'w') as f:
             json.dump(downspeakBigramModel, f)
 
-
-    runOnTestSet()
-    # if len(sys.argv) > 1:
+    if len(sys.argv) > 1:
+        param = sys.argv[1]
+        if len(param) > 0:
+            if param[-1] in '!?.':
+                param = param[:-1]
+            calculateAllMLEs(2, str(param))
+    else:
+        runOnTestSet()
+    #
     #     param = sys.argv[1]
     #     if len(param) > 0:
     #         if param[-1] in '!?.':
