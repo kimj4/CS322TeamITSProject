@@ -15,10 +15,8 @@ def makeTrainingFiles(path):
                         filename = 'data/fromJeb.txt'
                     else:
                         filename = 'data/toJeb.txt'
-
                     with open(filename, 'a') as file:
                         file.write(sentence)
-        break
 
 
 def main():
