@@ -85,16 +85,16 @@ def launch_on_multiple_cores(source_path_name, from_output_name, to_output_name)
         r.append(result.get())
 
     for f in temp_to_file_names:
-        fname = 'data/' + f + '.json'
+        fname = 'data/' + f + '.txt'
         with open(fname, 'r') as f1:
-            with open('data/' + to_output_name + '.json', 'a+') as f2:
+            with open('data/' + to_output_name + '.txt', 'a+') as f2:
                 f2.write(f1.read())
         os.remove(fname)
 
     for f in temp_from_file_names:
-        fname = 'data/' + f + '.json'
-        with open('data/' + f + '.json', 'r') as f1:
-            with open('data/' + from_output_name + '.json', 'a+') as f2:
+        fname = 'data/' + f + '.txt'
+        with open(fname, 'r') as f1:
+            with open('data/' + from_output_name + '.txt', 'a+') as f2:
                 f2.write(f1.read())
         os.remove(fname)
 
