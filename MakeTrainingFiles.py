@@ -15,15 +15,16 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
         with open(path + '/' + file, 'r') as fp:
             dictList = json.load(fp)
             for dict in dictList:
-                for sentence in dict['body']:
-                    # print('Need to change to and from key recognition')
+                sentence = dict['body']
+                print(sentence)
+                # print('Need to change to and from key recognition')
 
-                    if dict['from'] == 'Jeb Bush':
-                        filename = 'data/' + from_output_name + '.txt'
-                    else:
-                        filename = 'data/' + to_output_name + '.txt'
-                    with open(filename, 'a+') as file:
-                        file.write(sentence)
+                if dict['from'] == 'Jeb Bush':
+                    filename = 'data/' + from_output_name + '.txt'
+                else:
+                    filename = 'data/' + to_output_name + '.txt'
+                with open(filename, 'a+') as file:
+                    file.write(sentence)
 
     return
 
