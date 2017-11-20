@@ -22,7 +22,7 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
                         filename = 'data/' + from_output_name + '.txt'
                     else:
                         filename = 'data/' + to_output_name + '.txt'
-                    with open(filename, 'a') as file:
+                    with open(filename, 'a+') as file:
                         file.write(sentence)
 
     return
