@@ -30,6 +30,8 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
     with open('data/' + to_output_name + '.txt', 'w+') as file:
         file.write(to_jeb_string)
 
+    print('[{}, {}] is done'.format(start, end))
+
     return
 
 def list_distribution(num_items, total):
