@@ -12,6 +12,8 @@ Run `python3 TextAnalyzer.py`
 
 ### Simple Bayesian analysis
 
+Run `python3 BayesianMethod.py`
+
 ### CNN analysis
 
 
