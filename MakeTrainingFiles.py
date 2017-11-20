@@ -14,17 +14,18 @@ def makeTrainingFiles(path, from_output_name, to_output_name, start, end):
     from_jeb_string = ''
     to_jeb_string = ''
     for file in json_files:
-        with open(path + '/' + file, 'r') as fp:
-            dictList = json.load(fp)
-            for dict in dictList:
-                sentence = dict['body']
-                # print(sentence)
-                # print('Need to change to and from key recognition')
+        if os.path.isfile(path + '/' + file):
+            with open(path + '/' + file, 'r') as fp:
+                dictList = json.load(fp)
+                for dict in dictList:
+                    sentence = dict['body']
+                    # print(sentence)
+                    # print('Need to change to and from key recognition')
 
-                if dict['from'] == 'Jeb Bush':
-                    from_jeb_string += '\n' + dict['body']
-                else:
-                    to_jeb_string += '\n' + dict['body']
+                    if dict['from'] == 'Jeb Bush':
+                        from_jeb_string += '\n' + dict['body']
+                    else:
+                        to_jeb_string += '\n' + dict['body']
     with open('data/' + from_output_name + '.txt', 'w+') as file:
         file.write(from_jeb_string)
     with open('data/' + to_output_name + '.txt', 'w+') as file:
